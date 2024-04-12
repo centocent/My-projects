@@ -1,0 +1,144 @@
+{% extends './comms_base.html' %}
+{% load static %}
+
+{% block title %}{{ room.name }} |{% endblock %}
+
+{% block room_content %}
+<script src="{% static 'js/tailwind.js'%}"></script>
+<div class="container mx-auto py-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-3xl lg:text-4xl font-bold text-center mb-6">{{ room.name }}</h1>
+        <div class="lg:w-7/8 mx-auto">
+            <div class="bg-gray-800 rounded-lg p-4 overflow-y-scroll max-h-80" id="Chat-Holder">
+                <div class="chat-messages space-y-2" id="chat-messages">
+                    {% for message in messages %}
+                        <div class="px-4 py-3 bg-gray-200 rounded-xl">
+                            <p class="font-semibold">{% if message.user.username == request.user.username %}Me{% else %}{{ message.user.username }}{% endif %}</p>
+                            <p>{{ message.content }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if room.name == "Notifications" and not request.user.is_staff %}
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-circle mr-2"></i> Only staff members can send messages in this room.
+            </div>
+            {% else %}            
+            <form method="post" action="." class="mt-6 flex">
+                {% csrf_token %}
+                <input type="text" name="content" class="flex-1 mr-2 py-2 px-4 rounded-lg border border-gray-300 focus:outline-none focus:border-teal-500" placeholder="Your message..." id="chat-message-input">
+                <button class="py-2 px-6 rounded-lg bg-teal-500 text-white font-semibold hover:bg-teal-600 focus:outline-none focus:bg-teal-600 disabled:bg-gray-400" id="chat-message-submit" disabled>Submit</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ room.slug|json_script:"json-roomname" }}
+{{ request.user.username|json_script:"json-username" }}
+
+<script>
+    const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
+    const userName = JSON.parse(document.getElementById('json-username').textContent);
+    const room_type = 'room';
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/'
+        + room_type
+        + '/'
+        + roomName
+        + '/'
+    );
+    document.addEventListener('DOMContentLoaded', function() {
+        scrollToBottom();
+    });
+
+
+    chatSocket.onclose = function(e) {
+        console.log('onclose')
+    }
+
+    chatSocket.onmessage = function(e) {
+    console.log('Message received:', e.data);
+    const data = JSON.parse(e.data);
+    if (data.message) {
+        let html = '<div class="px-4 py-3 bg-gray-200 rounded-xl">';
+        if (data.username === userName) {
+            html += '<p class="font-semibold">Me</p>';
+        } else {
+            html += '<p class="font-semibold">' + data.username + '</p>';
+        }
+        html += '<p>' + data.message + '</p></div>';
+        document.querySelector('#chat-messages').innerHTML += html;
+    } else {
+        alert('The message was empty!');
+    }
+    console.log('Updated chat messages:', document.querySelector('#chat-messages').innerHTML);
+    scrollToBottom();
+    };
+
+    document.querySelector('#chat-message-input').addEventListener('input', function() {
+        const messageInput = this.value.trim();
+        const submitButton = document.querySelector('#chat-message-submit');
+        if (messageInput.length > 0) {
+            submitButton.removeAttribute('disabled');
+            submitButton.classList.remove('disabled:bg-gray-400');
+        } else {
+            submitButton.setAttribute('disabled', 'disabled');
+            submitButton.classList.add('disabled:bg-gray-400');
+        }
+    });
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').addEventListener('keyup', function(e) {
+    console.log('Key pressed:', e.keyCode); // Add this line to check if the keyup event is being triggered and to log the keycode
+    if (e.keyCode === 13 && !e.shiftKey) {
+        e.preventDefault();
+        console.log('Enter key pressed'); // Add this line to check if the condition for pressing the enter key without shift is being met
+        document.querySelector('#chat-message-submit').click();
+    }
+    });
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        e.preventDefault();
+        console.log('Submit button clicked'); // Add this line to check if the submit button click event is being triggered
+
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value.trim();
+        console.log('Message input:', message); // Add this line to log the message input value
+
+        if (message.length === 0) {
+            alert('Please enter a message.');
+            return;
+        }
+
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'username': userName,
+            'room': roomName,
+            'room_type': room_type
+
+        }));
+
+        messageInputDom.value = '';
+        document.querySelector('#chat-message-submit').setAttribute('disabled', 'disabled');
+        document.querySelector('#chat-message-submit').classList.add('disabled:bg-gray-400');
+
+        return false;
+    };
+    /**
+    * A function for finding the messages element, and scroll to the bottom of it.
+    */
+    function scrollToBottom() {
+    setTimeout(function() {
+        var objDiv = document.getElementById("Chat-Holder");
+        objDiv.scrollTop = objDiv.scrollHeight;
+    }, 50); // Delay of 50 milliseconds
+    }
+</script>
+{% endblock %}

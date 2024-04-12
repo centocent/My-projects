@@ -1,0 +1,131 @@
+{% extends './comms_base.html' %}
+{% load static %}
+
+{% block title %}{{ chatroom.user.username }}'s Chat Room |{% endblock %}
+
+{% block room_content %}
+<script src="{% static 'js/tailwind.js'%}"></script>
+<div class="container mx-auto py-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-3xl lg:text-4xl font-bold text-center mb-6">{{ chatroom.user.username }}'s Chat Room</h1>
+        <div class="lg:w-7/8 mx-auto">
+            <div class="bg-gray-800 rounded-lg p-4 overflow-y-scroll max-h-80" id="Chat-Holder">
+                <div class="chat-messages space-y-2" id="chat-messages">
+                    {% for message in messages %}
+                        <div class="px-4 py-3 bg-gray-200 rounded-xl">
+                            <p class="font-semibold">{% if message.user.username == request.user.username %}Me{% else %}{{ message.user.username }}{% endif %}</p>
+                            <p>{{ message.content }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <form method="post" action="." class="mt-6 flex">
+                {% csrf_token %}
+                <input type="text" name="content" class="flex-1 mr-2 py-2 px-4 rounded-lg border border-gray-300 focus:outline-none focus:border-teal-500" placeholder="Your message..." id="chat-message-input">
+                <button class="py-2 px-6 rounded-lg bg-teal-500 text-white font-semibold hover:bg-teal-600 focus:outline-none focus:bg-teal-600 disabled:bg-gray-400" id="chat-message-submit" disabled>Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ chatroom.slug|json_script:"json-chatroomname" }}
+{{ request.user.username|json_script:"json-username" }}
+
+<script>
+    const chatroomName = JSON.parse(document.getElementById('json-chatroomname').textContent);
+    const userName = JSON.parse(document.getElementById('json-username').textContent);
+    const room_type = 'chatroom'; 
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/'
+        + room_type
+        + '/'
+        + chatroomName
+        + '/'
+    );
+    document.addEventListener('DOMContentLoaded', function() {
+        scrollToBottom();
+    });
+
+
+    chatSocket.onclose = function(e) {
+        console.log('onclose')
+    }
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.message) {
+            let html = '<div class="px-4 py-3 bg-gray-200 rounded-xl">';
+            if (data.username === userName) {
+                html += '<p class="font-semibold">Me</p>';
+            } else {
+                html += '<p class="font-semibold">' + data.username + '</p>';
+            }
+            html += '<p>' + data.message + '</p></div>';
+            document.querySelector('#chat-messages').innerHTML += html;
+            scrollToBottom();
+        } else {
+            alert('The message was empty!')
+        }
+    };
+
+    document.querySelector('#chat-message-input').addEventListener('input', function() {
+        const messageInput = this.value.trim();
+        const submitButton = document.querySelector('#chat-message-submit');
+        if (messageInput.length > 0) {
+            submitButton.removeAttribute('disabled');
+            submitButton.classList.remove('disabled:bg-gray-400');
+        } else {
+            submitButton.setAttribute('disabled', 'disabled');
+            submitButton.classList.add('disabled:bg-gray-400');
+        }
+    });
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').addEventListener('keyup', function(e) {
+        if (e.keyCode === 13 && !e.shiftKey) {
+            e.preventDefault();
+            document.querySelector('#chat-message-submit').click();
+        }
+    });
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        e.preventDefault();
+
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value.trim();
+
+        if (message.length === 0) {
+            alert('Please enter a message.');
+            return;
+        }
+
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'username': userName,
+            'room': chatroomName,
+            'room_type': room_type,
+        }));
+
+        messageInputDom.value = '';
+        document.querySelector('#chat-message-submit').setAttribute('disabled', 'disabled');
+        document.querySelector('#chat-message-submit').classList.add('disabled:bg-gray-400');
+
+        return false;
+    };
+
+    /**
+    * A function for finding the messages element, and scroll to the bottom of it.
+    */
+    function scrollToBottom() {
+    setTimeout(function() {
+        var objDiv = document.getElementById("Chat-Holder");
+        objDiv.scrollTop = objDiv.scrollHeight;
+    }, 50); // Delay of 50 milliseconds
+    }
+</script>
+{% endblock %}
