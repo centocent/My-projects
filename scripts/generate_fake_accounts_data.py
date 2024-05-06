@@ -29,7 +29,7 @@ class UserFactory(DjangoModelFactory):
         phone (str): The generated phone number.
         address (str): The generated address.
         is_student (bool): Flag indicating if the user is a student.
-        is_lecturer (bool): Flag indicating if the user is a lecturer.
+        is_teacher (bool): Flag indicating if the user is a teacher.
         is_parent (bool): Flag indicating if the user is a parent.
         is_dep_head (bool): Flag indicating if the user is a department head.
     """
@@ -45,7 +45,7 @@ class UserFactory(DjangoModelFactory):
     phone: str = LazyAttribute(lambda x: fake.phone_number())
     address: str = LazyAttribute(lambda x: fake.address())
     is_student: bool = False
-    is_lecturer: bool = False
+    is_teacher: bool = False
     is_parent: bool = False
     is_dep_head: bool = False
 

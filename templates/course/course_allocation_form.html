@@ -35,8 +35,8 @@
                 <form action="" method="POST">{% csrf_token %}
                     <!-- {{ form|crispy }} -->
                         <div class="form-group">
-                            {{ form.lecturer.label }}{{ form.lecturer }}
-                            <span class="danger">{{ form.lecturer.errors }}</span>
+                            {{ form.teacher.label }}{{ form.teacher }}
+                            <span class="danger">{{ form.teacher.errors }}</span>
                         </div>
                         <div class="form-group">
                             {{ form.courses.label }}{{ form.courses }}

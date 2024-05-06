@@ -9,10 +9,10 @@ from .views import (
     session_add_view,
     session_update_view,
     session_delete_view,
-    semester_list_view,
-    semester_add_view,
-    semester_update_view,
-    semester_delete_view,
+    term_list_view,
+    term_add_view,
+    term_update_view,
+    term_delete_view,
     dashboard_view,
 )
 
@@ -27,9 +27,9 @@ urlpatterns = [
     path("session/add/", session_add_view, name="add_session"),
     path("session/<int:pk>/edit/", session_update_view, name="edit_session"),
     path("session/<int:pk>/delete/", session_delete_view, name="delete_session"),
-    path("semester/", semester_list_view, name="semester_list"),
-    path("semester/add/", semester_add_view, name="add_semester"),
-    path("semester/<int:pk>/edit/", semester_update_view, name="edit_semester"),
-    path("semester/<int:pk>/delete/", semester_delete_view, name="delete_semester"),
+    path("term/", term_list_view, name="term_list"),
+    path("term/add/", term_add_view, name="add_term"),
+    path("term/<int:pk>/edit/", term_update_view, name="edit_term"),
+    path("term/<int:pk>/delete/", term_delete_view, name="delete_term"),
     path("dashboard/", dashboard_view, name="dashboard"),
 ]

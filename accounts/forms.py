@@ -111,7 +111,7 @@ class StaffAddForm(UserCreationForm):
     @transaction.atomic()
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.is_lecturer = True
+        user.is_teacher = True
         user.first_name = self.cleaned_data.get("first_name")
         user.last_name = self.cleaned_data.get("last_name")
         user.phone = self.cleaned_data.get("phone")
@@ -120,9 +120,9 @@ class StaffAddForm(UserCreationForm):
 
         # Generate a username
         registration_date = datetime.now().strftime("%Y")
-        total_lecturers_count = User.objects.filter(is_lecturer=True).count()
+        total_teachers_count = User.objects.filter(is_teacher=True).count()
         generated_username = (
-            f"{settings.LECTURER_ID_PREFIX}-{registration_date}-{total_lecturers_count}"
+            f"{settings.TEACHER_ID_PREFIX}-{registration_date}-{total_teachers_count}"
         )
         # Generate a password
         generated_password = User.objects.make_random_password()
@@ -173,7 +173,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Mobile No.",
+        label="Parent/Guardian Mobile No.",
     )
 
     first_name = forms.CharField(
@@ -231,7 +231,7 @@ class StudentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Email Address",
+        label="Parent/Guardian Email Address",
     )
 
     password1 = forms.CharField(
@@ -318,7 +318,7 @@ class ProfileUpdateForm(UserChangeForm):
                 "class": "form-control",
             }
         ),
-        label="Email Address",
+        label="Parent/Guardian Email Address",
     )
 
     first_name = forms.CharField(
@@ -357,7 +357,7 @@ class ProfileUpdateForm(UserChangeForm):
                 "class": "form-control",
             }
         ),
-        label="Phone No.",
+        label="Parent Phone No.",
     )
 
     address = forms.CharField(
@@ -454,7 +454,7 @@ class ParentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
-        label="Email Address",
+        label="Parents/Guardian Email Address",
     )
 
     student = forms.ModelChoiceField(

@@ -29,7 +29,7 @@ class CourseAddForm(forms.ModelForm):
         self.fields["program"].widget.attrs.update({"class": "form-control"})
         self.fields["level"].widget.attrs.update({"class": "form-control"})
         self.fields["year"].widget.attrs.update({"class": "form-control"})
-        self.fields["semester"].widget.attrs.update({"class": "form-control"})
+        self.fields["term"].widget.attrs.update({"class": "form-control"})
 
 
 class CourseAllocationForm(forms.ModelForm):
@@ -40,20 +40,20 @@ class CourseAllocationForm(forms.ModelForm):
         ),
         required=True,
     )
-    lecturer = forms.ModelChoiceField(
-        queryset=User.objects.filter(is_lecturer=True),
+    teacher = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_teacher=True),
         widget=forms.Select(attrs={"class": "browser-default custom-select"}),
-        label="lecturer",
+        label="teacher",
     )
 
     class Meta:
         model = CourseAllocation
-        fields = ["lecturer", "courses"]
+        fields = ["teacher", "courses"]
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")
         super(CourseAllocationForm, self).__init__(*args, **kwargs)
-        self.fields["lecturer"].queryset = User.objects.filter(is_lecturer=True)
+        self.fields["teacher"].queryset = User.objects.filter(is_teacher=True)
 
 
 class EditCourseAllocationForm(forms.ModelForm):
@@ -62,20 +62,20 @@ class EditCourseAllocationForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         required=True,
     )
-    lecturer = forms.ModelChoiceField(
-        queryset=User.objects.filter(is_lecturer=True),
+    teacher = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_teacher=True),
         widget=forms.Select(attrs={"class": "browser-default custom-select"}),
-        label="lecturer",
+        label="teacher",
     )
 
     class Meta:
         model = CourseAllocation
-        fields = ["lecturer", "courses"]
+        fields = ["teacher", "courses"]
 
     def __init__(self, *args, **kwargs):
         #    user = kwargs.pop('user')
         super(EditCourseAllocationForm, self).__init__(*args, **kwargs)
-        self.fields["lecturer"].queryset = User.objects.filter(is_lecturer=True)
+        self.fields["teacher"].queryset = User.objects.filter(is_teacher=True)
 
 
 # Upload files to specific course

@@ -14,7 +14,7 @@ from .views import (
     admin_panel,
     profile_update,
     change_password,
-    LecturerFilterView,
+    TeacherFilterView,
     StudentListView,
     staff_add_view,
     edit_staff,
@@ -25,9 +25,9 @@ from .views import (
     ParentAdd,
     validate_username,
     register,
-    render_lecturer_pdf_list, #new
+    render_teacher_pdf_list, #new
     render_student_pdf_list, #new
-    Logout
+    logout_view
 )
 
 # from .forms import EmailValidationOnForgotPassword
@@ -40,10 +40,10 @@ urlpatterns = [
     path("profile/<int:id>/detail/", profile_single, name="profile_single"),
     path("setting/", profile_update, name="edit_profile"),
     path("change_password/", change_password, name="change_password"),
-    path("lecturers/", LecturerFilterView.as_view(), name="lecturer_list"),
-    path("lecturer/add/", staff_add_view, name="add_lecturer"),
+    path("teachers/", TeacherFilterView.as_view(), name="teacher_list"),
+    path("teacher/add/", staff_add_view, name="add_teacher"),
     path("staff/<int:pk>/edit/", edit_staff, name="staff_edit"),
-    path("lecturers/<int:pk>/delete/", delete_staff, name="lecturer_delete"),
+    path("teachers/<int:pk>/delete/", delete_staff, name="teacher_delete"),
     path("students/", StudentListView.as_view(), name="student_list"),
     path("student/add/", student_add_view, name="add_student"),
     path("student/<int:pk>/edit/", edit_student, name="student_edit"),
@@ -52,7 +52,7 @@ urlpatterns = [
     path("ajax/validate-username/", validate_username, name="validate_username"),
     path("register/", register, name="register"),
     #paths to pdf
-    path("create_lecturers_pdf_list/", render_lecturer_pdf_list, name="lecturer_list_pdf"), #new
+    path("create_teachers_pdf_list/", render_teacher_pdf_list, name="teacher_list_pdf"), #new
     path("create_students_pdf_list/", render_student_pdf_list, name="student_list_pdf"), #new
     # path('add-student/', StudentAddView.as_view(), name='add_student'),
     # path('programs/course/delete/<int:pk>/', course_delete, name='delete_course'),
@@ -61,7 +61,7 @@ urlpatterns = [
     # path('profile/<int:pk>/change-password/', changePasswordView, name='change_password'),
     # ################################################################
     # path('login/', View.as_view(), name=''),
-    path('logout/', Logout, name='logout', kwargs={'next_page': '/'}),
+    path('logoutnow/', logout_view, name='logoutnow'),
     # path('password-reset/', PasswordResetView.as_view(
     #     form_class=EmailValidationOnForgotPassword,
     #     template_name='registration/password_reset.html'

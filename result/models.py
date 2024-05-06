@@ -2,7 +2,7 @@ from django.db import models
 from django.urls import reverse
 
 from accounts.models import Student
-from core.models import Semester
+from core.models import Term
 from course.models import Course
 
 YEARS = (
@@ -15,23 +15,25 @@ YEARS = (
 )
 
 # LEVEL_COURSE = "Level course"
-BACHLOAR_DEGREE = "Bachloar"
-MASTER_DEGREE = "Master"
+LOWER_LEVEL = "Lower"
+LOWER_LEVEL = "Lower"
 
 LEVEL = (
     # (LEVEL_COURSE, "Level course"),
-    (BACHLOAR_DEGREE, "Bachloar Degree"),
-    (MASTER_DEGREE, "Master Degree"),
+    (LOWER_LEVEL, "Lower Level"),
+    (LOWER_LEVEL, "Lower Level"),
 )
 
 FIRST = "First"
 SECOND = "Second"
 THIRD = "Third"
 
-SEMESTER = (
+
+TERM = (
     (FIRST, "First"),
     (SECOND, "Second"),
     (THIRD, "Third"),
+    
 )
 
 A_PLUS = "A+"
@@ -182,12 +184,12 @@ class TakenCourse(models.Model):
         p += int(credit) * point
         return p
 
-    def calculate_gpa(self, total_credit_in_semester):
-        current_semester = Semester.objects.get(is_current_semester=True)
+    def calculate_gpa(self, total_credit_in_term):
+        current_term = Term.objects.get(is_current_term=True)
         student = TakenCourse.objects.filter(
             student=self.student,
             course__level=self.student.level,
-            course__semester=current_semester,
+            course__term=current_term,
         )
         p = 0
         point = 0
@@ -217,13 +219,13 @@ class TakenCourse(models.Model):
                 point = 0
             p += int(credit) * point
         try:
-            gpa = p / total_credit_in_semester
+            gpa = p / total_credit_in_term
             return round(gpa, 2)
         except ZeroDivisionError:
             return 0
 
     def calculate_cgpa(self):
-        current_semester = Semester.objects.get(is_current_semester=True)
+        current_term = Term.objects.get(is_current_term=True)
         previousResult = Result.objects.filter(
             student__id=self.student.id, level__lt=self.student.level
         )
@@ -232,12 +234,12 @@ class TakenCourse(models.Model):
             if i.cgpa is not None:
                 previous_cgpa += i.cgpa
         cgpa = 0
-        if str(current_semester) == SECOND:
+        if str(current_term) == SECOND:
             first_sem_gpa = 0.0
             sec_sem_gpa = 0.0
             try:
                 first_sem_result = Result.objects.get(
-                    student=self.student.id, semester=FIRST, level=self.student.level
+                    student=self.student.id, term=FIRST, level=self.student.level
                 )
                 first_sem_gpa += first_sem_result.gpa
             except:
@@ -245,7 +247,7 @@ class TakenCourse(models.Model):
 
             try:
                 sec_sem_result = Result.objects.get(
-                    student=self.student.id, semester=SECOND, level=self.student.level
+                    student=self.student.id, term=SECOND, level=self.student.level
                 )
                 sec_sem_gpa += sec_sem_result.gpa
             except:
@@ -281,6 +283,6 @@ class Result(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     gpa = models.FloatField(null=True)
     cgpa = models.FloatField(null=True)
-    semester = models.CharField(max_length=100, choices=SEMESTER)
+    term = models.CharField(max_length=100, choices=TERM)
     session = models.CharField(max_length=100, blank=True, null=True)
     level = models.CharField(max_length=25, choices=LEVEL, null=True)

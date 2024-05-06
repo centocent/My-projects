@@ -31,7 +31,7 @@
 
 </style>
 
-<p class="title-1">Lecturers</p>
+<p class="title-1">Teachers</p>
 
 <div>
   <table class="table">
@@ -46,20 +46,20 @@
       </tr>
     </thead>
     <tbody>
-      {% for lecturer in lecturers %}
+      {% for teacher in teachers %}
       <tr>
         <td> {{ forloop.counter }}.</td>
-        <td>{{ lecturer.username }}</td>
-        <td><a href="{% url 'profile_single' lecturer.id %}">{{ lecturer.get_full_name }}</a></td>
-        <td>{{ lecturer.email }}</td>
-        <td>{{ lecturer.phone }}</td>
-        <td>{{ lecturer.address }}</td>
+        <td>{{ teacher.username }}</td>
+        <td><a href="{% url 'profile_single' teacher.id %}">{{ teacher.get_full_name }}</a></td>
+        <td>{{ teacher.email }}</td>
+        <td>{{ teacher.phone }}</td>
+        <td>{{ teacher.address }}</td>
       </tr>
       {% empty %}
       <tr>
         <td>
           <span class="text-danger">
-            No Lecturer(s).
+            No Teacher(s).
           </span>
         </td>
       </tr>

@@ -21,7 +21,7 @@
                 <i class="fas fa-pencil-alt"></i> Edit course
             </a>
             {% endif %}
-            {% if request.user.is_superuser or request.user.is_lecturer %}
+            {% if request.user.is_superuser or request.user.is_teacher %}
             <a class="btn btn-sm btn-primary" href="{% url 'upload_file_view' course.slug %}"><i class="fas fa-plus"></i>
                 Upload new file
             </a>
@@ -56,7 +56,7 @@
                             <th>Video Title</th>
                             <th>Uploaded Date</th>
                             <th>Get Started</th>
-                            {% if request.user.is_superuser or request.user.is_lecturer %}
+                            {% if request.user.is_superuser or request.user.is_teacher %}
                             <th>Actions</th>
                             {% endif %}
                         </tr>
@@ -79,7 +79,7 @@
                                 </div>
                             </th>
 
-                            {% if request.user.is_superuser or request.user.is_lecturer %}
+                            {% if request.user.is_superuser or request.user.is_teacher %}
                             <td>
                                 <div class="update-delete">
                                     <a href="{% url 'upload_video_edit' slug=course.slug video_slug=video.slug %}"
@@ -101,7 +101,7 @@
                             <td>
                                 <span class="text-danger">
                                     No video Uploaded.
-                                    {% if request.user.is_superuser or request.user.is_lecturer %}
+                                    {% if request.user.is_superuser or request.user.is_teacher %}
                                     <a href="{% url 'upload_video' course.slug %}">
                                         <i class="primary" style="font-size: 22px;">
                                             Upload now.
@@ -133,7 +133,7 @@
                             <th>Uploaded Date</th>
                             <th>Updated Date</th>
                             <th>Downloads</th>
-                            {% if request.user.is_superuser or request.user.is_lecturer %}
+                            {% if request.user.is_superuser or request.user.is_teacher %}
                             <th>Actions</th>
                             {% endif %}
                         </tr>
@@ -156,7 +156,7 @@
                                 </div>
                             </th>
 
-                            {% if request.user.is_superuser or request.user.is_lecturer %}
+                            {% if request.user.is_superuser or request.user.is_teacher %}
                             <td>
                                 <div class="update-delete">
                                     <a href="{% url 'upload_file_edit' slug=course.slug file_id=file.pk %}"
@@ -178,7 +178,7 @@
                             <td>
                                 <span class="text-danger">
                                     No File Uploaded.
-                                    {% if request.user.is_superuser or request.user.is_lecturer %}
+                                    {% if request.user.is_superuser or request.user.is_teacher %}
                                     <a href="{% url 'upload_file_view' course.slug %}">
                                         <i class="primary" style="font-size: 22px;">
                                             Upload now.
@@ -201,20 +201,20 @@
 </div>
 
 <div class="site-section mb-5 mt-4">
-    <div class="title-1">Lecturer(s)</div>
+    <div class="title-1">Teacher(s)</div>
     <br>
     <br>
     <div class="container-fluid">
         <div class="row">
-            {% for lecturer in lecturers %}
+            {% for teacher in teachers %}
             <div class="col-lg-4">
                 <div class="card text-center">
                     <div class="card-body">
-                        {% if lecturer.lecturer.picture %}
-                        <img class="avatar avatar-lg" src="{{ lecturer.lecturer.picture.url }}" alt="">
+                        {% if teacher.teacher.picture %}
+                        <img class="avatar avatar-lg" src="{{ teacher.teacher.picture.url }}" alt="">
                         {% endif %}
-                        <h5 class="fw-bold mb-0">{{ lecturer|title }}</h5>
-                        <p class="mb-0">{{ lecturer.lecturer.email }}</p>
+                        <h5 class="fw-bold mb-0">{{ teacher|title }}</h5>
+                        <p class="mb-0">{{ teacher.teacher.email }}</p>
                         <p class="text-muted small">Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod.</p>
                         <p>
                             <a class="btn btn-sm btn-secondary" href="#" role="button"><i
@@ -228,7 +228,7 @@
                 </div>
             </div>
             {% empty %}
-            <h6 class="text-muted mt-3">No lecturer assigned for this course</h6>
+            <h6 class="text-muted mt-3">No teacher assigned for this course</h6>
             {% endfor %}
 
         </div>

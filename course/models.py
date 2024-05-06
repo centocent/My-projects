@@ -20,23 +20,25 @@ YEARS = (
 )
 
 # LEVEL_COURSE = "Level course"
-BACHLOAR_DEGREE = "Bachloar"
-MASTER_DEGREE = "Master"
+LOWER_LEVEL = "Lower"
+LOWER_LEVEL = "Lower"
 
 LEVEL = (
     # (LEVEL_COURSE, "Level course"),
-    (BACHLOAR_DEGREE, "Bachloar Degree"),
-    (MASTER_DEGREE, "Master Degree"),
+    (LOWER_LEVEL, "Lower Level"),
+    (LOWER_LEVEL, "Lower Level"),
 )
 
 FIRST = "First"
 SECOND = "Second"
 THIRD = "Third"
 
-SEMESTER = (
+
+TERM = (
     (FIRST, "First"),
     (SECOND, "Second"),
     (THIRD, "Third"),
+    
 )
 
 
@@ -100,7 +102,7 @@ class Course(models.Model):
     program = models.ForeignKey(Program, on_delete=models.CASCADE)
     level = models.CharField(max_length=25, choices=LEVEL, null=True)
     year = models.IntegerField(choices=YEARS, default=0)
-    semester = models.CharField(choices=SEMESTER, max_length=200)
+    term = models.CharField(choices=TERM, max_length=200)
     is_elective = models.BooleanField(default=False, blank=True, null=True)
 
     objects = CourseManager()
@@ -112,12 +114,12 @@ class Course(models.Model):
         return reverse("course_detail", kwargs={"slug": self.slug})
 
     @property
-    def is_current_semester(self):
-        from core.models import Semester
+    def is_current_term(self):
+        from core.models import Term
 
-        current_semester = Semester.objects.get(is_current_semester=True)
+        current_term = Term.objects.get(is_current_term=True)
 
-        if self.semester == current_semester.semester:
+        if self.term == current_term.term:
             return True
         else:
             return False
@@ -143,10 +145,10 @@ def log_delete(sender, instance, **kwargs):
 
 
 class CourseAllocation(models.Model):
-    lecturer = models.ForeignKey(
+    teacher = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="allocated_lecturer",
+        related_name="allocated_teacher",
     )
     courses = models.ManyToManyField(Course, related_name="allocated_course")
     session = models.ForeignKey(
@@ -154,7 +156,7 @@ class CourseAllocation(models.Model):
     )
 
     def __str__(self):
-        return self.lecturer.get_full_name
+        return self.teacher.get_full_name
 
     def get_absolute_url(self):
         return reverse("edit_allocated_course", kwargs={"pk": self.pk})
@@ -283,7 +285,7 @@ def log_delete(sender, instance, **kwargs):
 
 
 class CourseOffer(models.Model):
-    """NOTE: Only department head can offer semester courses"""
+    """NOTE: Only department head can offer term courses"""
 
     dep_head = models.ForeignKey("accounts.DepartmentHead", on_delete=models.CASCADE)
 

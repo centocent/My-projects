@@ -16,10 +16,12 @@ FIRST = "First"
 SECOND = "Second"
 THIRD = "Third"
 
-SEMESTER = (
+
+TERM = (
     (FIRST, "First"),
     (SECOND, "Second"),
     (THIRD, "Third"),
+    
 )
 
 
@@ -74,16 +76,16 @@ class Session(models.Model):
         return self.session
 
 
-class Semester(models.Model):
-    semester = models.CharField(max_length=10, choices=SEMESTER, blank=True)
-    is_current_semester = models.BooleanField(default=False, blank=True, null=True)
+class Term(models.Model):
+    term = models.CharField(max_length=10, choices=TERM, blank=True)
+    is_current_term = models.BooleanField(default=False, blank=True, null=True)
     session = models.ForeignKey(
         Session, on_delete=models.CASCADE, blank=True, null=True
     )
-    next_semester_begins = models.DateField(null=True, blank=True)
+    next_term_begins = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return self.semester
+        return self.term
 
 
 class ActivityLog(models.Model):

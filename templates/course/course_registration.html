@@ -17,7 +17,7 @@
 
 {% include 'snippets/messages.html' %}
 
-{% if current_semester %}
+{% if current_term %}
 {% if is_calender_on == False %}
 
 <div class="alert bg-danger">
@@ -55,7 +55,7 @@
                         </thead>
                         <tbody>
                             {% for course in courses %}
-                            {% if course.semester == "First" %}
+                            {% if course.term == "First" %}
                             <tr>
                                 <th scope="row">
                                     <input name="{{ course.pk }}" value="{{ course.courseUnit }}" type="checkbox">
@@ -93,7 +93,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td><b>First Term Credit(s):</b> {{ total_first_semester_credit }} </td>
+                                <td><b>First Term Credit(s):</b> {{ total_first_term_credit }} </td>
                                 <td></td>
                             </tr>
                         </tbody>
@@ -118,7 +118,7 @@
                         </thead>
                         <tbody>
                             {% for course in courses %}
-                            {% if course.semester == "Second" %}
+                            {% if course.term == "Second" %}
                             <tr>
                                 <th scope="row">
                                     <input name="{{ course.pk }}" value="{{ course.courseUnit }}" type="checkbox">
@@ -156,7 +156,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td><b>Second term credit(s):</b> {{ total_sec_semester_credit }} </td>
+                                <td><b>Second term credit(s):</b> {{ total_sec_term_credit }} </td>
                                 <td></td>
                             </tr>
                             <tr>
@@ -166,7 +166,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td><b>Total credit(s):</b> {{ total_sec_semester_credit|add:total_first_semester_credit }} </td>
+                                <td><b>Total credit(s):</b> {{ total_sec_term_credit|add:total_first_term_credit }} </td>
                                 <td></td>
                             </tr>
                         </tbody>

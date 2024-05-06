@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.test import TestCase, RequestFactory
-from accounts.decorators import admin_required, lecturer_required, student_required
+from accounts.decorators import admin_required, teacher_required, student_required
 
 User = get_user_model()
 
@@ -56,21 +56,21 @@ class AdminRequiredDecoratorTests(TestCase):
         self.assertIsInstance(response, HttpResponse)
 
 
-class LecturerRequiredDecoratorTests(TestCase):
+class TeacherRequiredDecoratorTests(TestCase):
     def setUp(self):
-        self.lecturer = User.objects.create_user(
-            username='lecturer', email='lecturer@example.com', password='password', is_lecturer=True
+        self.teacher = User.objects.create_user(
+            username='teacher', email='teacher@example.com', password='password', is_teacher=True
         )
         self.user = User.objects.create_user(
             username='user', email='user@example.com', password='password'
         )
         self.factory = RequestFactory()
 
-    def lecturer_view(self, request):
-        return HttpResponse("Lecturer View Content")
+    def teacher_view(self, request):
+        return HttpResponse("Teacher View Content")
 
-    def test_lecturer_required_decorator_redirects(self):
-        decorated_view = lecturer_required(self.lecturer_view)
+    def test_teacher_required_decorator_redirects(self):
+        decorated_view = teacher_required(self.teacher_view)
 
         request = self.factory.get("/restricted-view")
         request.user = self.user
@@ -80,8 +80,8 @@ class LecturerRequiredDecoratorTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/")
 
-    def test_lecturer_required_decorator_redirects_to_correct_path(self):
-        decorated_view = lecturer_required(function=self.lecturer_view, redirect_to="/login/")
+    def test_teacher_required_decorator_redirects_to_correct_path(self):
+        decorated_view = teacher_required(function=self.teacher_view, redirect_to="/login/")
 
         request = self.factory.get("/restricted-view")
         request.user = self.user
@@ -91,22 +91,22 @@ class LecturerRequiredDecoratorTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/login/')
 
-    def test_lecturer_required_decorator_does_not_redirect_lecturer(self):
-        decorated_view = lecturer_required(self.lecturer_view)
+    def test_teacher_required_decorator_does_not_redirect_teacher(self):
+        decorated_view = teacher_required(self.teacher_view)
 
         request = self.factory.get("/restricted-view")
-        request.user = self.lecturer
+        request.user = self.teacher
 
         response = decorated_view(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"Lecturer View Content")
+        self.assertEqual(response.content, b"Teacher View Content")
 
-    def test_lecturer_redirect_decorator_return_correct_response(self):
-        decorated_view = lecturer_required(self.lecturer_view)
+    def test_teacher_redirect_decorator_return_correct_response(self):
+        decorated_view = teacher_required(self.teacher_view)
 
         request = self.factory.get("/restricted-view")
-        request.user = self.lecturer
+        request.user = self.teacher
 
         response = decorated_view(request)
 

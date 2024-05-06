@@ -2,7 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.conf import settings
-
+import uuid
 from django.db.models import Q
 from PIL import Image
 
@@ -11,13 +11,17 @@ from .validators import ASCIIUsernameValidator
 
 
 # LEVEL_COURSE = "Level course"
-BACHLOAR_DEGREE = "Bachloar"
-MASTER_DEGREE = "Master"
+Form = "Form "
+Form2 = "Form"
+Form3 = "Form"
+Form4 = "Form"
 
 LEVEL = (
     # (LEVEL_COURSE, "Level course"),
-    (BACHLOAR_DEGREE, "Bachloar Degree"),
-    (MASTER_DEGREE, "Master Degree"),
+    (Form, "Form 1 "),
+    (Form2, "Form 2"),
+    (Form3, "Form 3"),
+    (Form4, "Form 4"),
 )
 
 FATHER = "Father"
@@ -57,8 +61,8 @@ class CustomUserManager(UserManager):
     def get_student_count(self):
         return self.model.objects.filter(is_student=True).count()
 
-    def get_lecturer_count(self):
-        return self.model.objects.filter(is_lecturer=True).count()
+    def get_teacher_count(self):
+        return self.model.objects.filter(is_teacher=True).count()
 
     def get_superuser_count(self):
         return self.model.objects.filter(is_superuser=True).count()
@@ -69,7 +73,7 @@ GENDERS = (("M", "Male"), ("F", "Female"))
 
 class User(AbstractUser):
     is_student = models.BooleanField(default=False)
-    is_lecturer = models.BooleanField(default=False)
+    is_teacher = models.BooleanField(default=False)
     is_parent = models.BooleanField(default=False)
     is_dep_head = models.BooleanField(default=False)
     gender = models.CharField(max_length=1, choices=GENDERS, blank=True, null=True)
@@ -103,8 +107,8 @@ class User(AbstractUser):
             role = "Admin"
         elif self.is_student:
             role = "Student"
-        elif self.is_lecturer:
-            role = "Lecturer"
+        elif self.is_teacher:
+            role = "Teacher"
         elif self.is_parent:
             role = "Parent"
 
@@ -150,7 +154,7 @@ class StudentManager(models.Manager):
 
 class Student(models.Model):
     student = models.OneToOneField(User, on_delete=models.CASCADE)
-    # id_number = models.CharField(max_length=20, unique=True, blank=True)
+    id_number = models.CharField(max_length=20, unique=True, blank=True)
     level = models.CharField(max_length=25, choices=LEVEL, null=True)
     program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True)
 
@@ -161,7 +165,11 @@ class Student(models.Model):
 
     def __str__(self):
         return self.student.get_full_name
-
+    def save(self, *args, **kwargs):
+        if not self.id_number:
+            # Generate a unique id_number if not provided
+            self.id_number = uuid.uuid4().hex[:12].upper()  # Generate a random 12-character string
+        super().save(*args, **kwargs)
     @classmethod
     def get_gender_count(cls):
         males_count = Student.objects.filter(student__gender="M").count()

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from . import views
-
+from .views import create_google_meet
 app_name = 'communications'
 
 urlpatterns  = [
@@ -12,4 +12,5 @@ urlpatterns  = [
     path('start-private-conversation/<str:username>/', views.start_private_conversation, name='start_private_conversation'),
     path('private-conversation/<str:otheruser>/<int:conversation_id>/', views.private_conversation, name='private_conversation'),
     path('users/', views.users_list, name='users_list'),
+     path('create_google_meet/', create_google_meet, name='create_google_meet'),
 ]

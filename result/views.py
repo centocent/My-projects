@@ -22,9 +22,9 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 
 from accounts.models import Student
-from core.models import Session, Semester
+from core.models import Session, Term
 from course.models import Course
-from accounts.decorators import lecturer_required, student_required
+from accounts.decorators import teacher_required, student_required
 from .models import TakenCourse, Result, FIRST, SECOND
 
 
@@ -35,65 +35,61 @@ cm = 2.54
 # Score Add & Add for
 # ########################################################
 @login_required
-@lecturer_required
+@teacher_required
 def add_score(request):
     """
-    Shows a page where a lecturer will select a course allocated
-    to him for score entry. in a specific semester and session
+    Shows a page where a teacher will select a course allocated
+    to him for score entry. in a specific term and session
     """
     current_session = Session.objects.filter(is_current_session=True).first()
-    current_semester = Semester.objects.filter(
-        is_current_semester=True, session=current_session
-    ).first()
-
-    if not current_session or not current_semester:
-        messages.error(request, "No active semester found.")
+    if not current_session:
+        messages.error(request, "No active session found.")
         return render(request, "result/add_score.html")
 
-    # semester = Course.objects.filter(
-    # allocated_course__lecturer__pk=request.user.id,
-    # semester=current_semester)
-    courses = Course.objects.filter(
-        allocated_course__lecturer__pk=request.user.id
-    ).filter(semester=current_semester)
+    current_term = Term.objects.filter(is_current_term=True, session=current_session).first()
+    if not current_term:
+        messages.error(request, "No active term found.")
+        return render(request, "result/add_score.html")
+
+    courses = Course.objects.filter(allocated_course__teacher=request.user, term=current_term)
     context = {
         "current_session": current_session,
-        "current_semester": current_semester,
+        "current_term": current_term,
         "courses": courses,
     }
     return render(request, "result/add_score.html", context)
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def add_score_for(request, id):
     """
-    Shows a page where a lecturer will add score for students that
-    are taking courses allocated to him in a specific semester and session
+    Shows a page where a teacher will add score for students that
+    are taking courses allocated to him in a specific term and session
     """
     current_session = Session.objects.get(is_current_session=True)
-    current_semester = get_object_or_404(
-        Semester, is_current_semester=True, session=current_session
+    current_term = get_object_or_404(
+        Term, is_current_term=True, session=current_session
     )
     if request.method == "GET":
         courses = Course.objects.filter(
-            allocated_course__lecturer__pk=request.user.id
-        ).filter(semester=current_semester)
+            allocated_course__teacher__pk=request.user.id
+        ).filter(term=current_term)
         course = Course.objects.get(pk=id)
-        # myclass = Class.objects.get(lecturer__pk=request.user.id)
-        # myclass = get_object_or_404(Class, lecturer__pk=request.user.id)
+        # myclass = Class.objects.get(teacher__pk=request.user.id)
+        # myclass = get_object_or_404(Class, teacher__pk=request.user.id)
 
         # students = TakenCourse.objects.filter(
-        # course__allocated_course__lecturer__pk=request.user.id).filter(
+        # course__allocated_course__teacher__pk=request.user.id).filter(
         #  course__id=id).filter(
-        #  student__allocated_student__lecturer__pk=request.user.id).filter(
-        #  course__semester=current_semester)
+        #  student__allocated_student__teacher__pk=request.user.id).filter(
+        #  course__term=current_term)
         students = (
             TakenCourse.objects.filter(
-                course__allocated_course__lecturer__pk=request.user.id
+                course__allocated_course__teacher__pk=request.user.id
             )
             .filter(course__id=id)
-            .filter(course__semester=current_semester)
+            .filter(course__term=current_term)
         )
         context = {
             "title": "Submit Score",
@@ -102,7 +98,7 @@ def add_score_for(request, id):
             # "myclass": myclass,
             "students": students,
             "current_session": current_session,
-            "current_semester": current_semester,
+            "current_term": current_term,
         }
         return render(request, "result/add_score_for.html", context)
 
@@ -124,14 +120,14 @@ def add_score_for(request, id):
             courses = (
                 Course.objects.filter(level=student.student.level)
                 .filter(program__pk=student.student.program.id)
-                .filter(semester=current_semester)
-            )  # all courses of a specific level in current semester
-            total_credit_in_semester = 0
+                .filter(term=current_term)
+            )  # all courses of a specific level in current term
+            total_credit_in_term = 0
             for i in courses:
                 if i == courses.count():
                     break
                 else:
-                    total_credit_in_semester += int(i.credit)
+                    total_credit_in_term += int(i.credit)
             score = data.getlist(
                 ids[s]
             )  # get list of score for current student in the loop
@@ -167,13 +163,13 @@ def add_score_for(request, id):
             # obj.carry_over(obj.grade)
             # obj.is_repeating()
             obj.save()
-            gpa = obj.calculate_gpa(total_credit_in_semester)
+            gpa = obj.calculate_gpa(total_credit_in_term)
             cgpa = obj.calculate_cgpa()
 
             try:
                 a = Result.objects.get(
                     student=student.student,
-                    semester=current_semester,
+                    term=current_term,
                     session=current_session,
                     level=student.student.level,
                 )
@@ -184,20 +180,20 @@ def add_score_for(request, id):
                 Result.objects.get_or_create(
                     student=student.student,
                     gpa=gpa,
-                    semester=current_semester,
+                    term=current_term,
                     session=current_session,
                     level=student.student.level,
                 )
 
             # try:
             #     a = Result.objects.get(student=student.student,
-            # semester=current_semester, level=student.student.level)
+            # term=current_term, level=student.student.level)
             #     a.gpa = gpa
             #     a.cgpa = cgpa
             #     a.save()
             # except:
             #     Result.objects.get_or_create(student=student.student, gpa=gpa,
-            # semester=current_semester, level=student.student.level)
+            # term=current_term, level=student.student.level)
 
         messages.success(request, "Successfully Recorded! ")
         return HttpResponseRedirect(reverse_lazy("add_score_for", kwargs={"id": id}))
@@ -211,10 +207,18 @@ def add_score_for(request, id):
 @student_required
 def grade_result(request):
     student = Student.objects.get(student__pk=request.user.id)
-    courses = TakenCourse.objects.filter(student__student__pk=request.user.id).filter(
-        course__level=student.level
-    )
-    # total_credit_in_semester = 0
+    courses = TakenCourse.objects.filter(student__student__pk=request.user.id)
+    
+    # .filter(
+    #     course__level=student.level
+    # )
+
+    if courses.exists():
+        for course in courses:
+            print(course.course.code)
+    else:
+        print('nothing here')
+    # total_credit_in_term = 0
     results = Result.objects.filter(student__student__pk=request.user.id)
 
     result_set = set()
@@ -224,13 +228,13 @@ def grade_result(request):
 
     sorted_result = sorted(result_set)
 
-    total_first_semester_credit = 0
-    total_sec_semester_credit = 0
+    total_first_term_credit = 0
+    total_sec_term_credit = 0
     for i in courses:
-        if i.course.semester == "First":
-            total_first_semester_credit += int(i.course.credit)
-        if i.course.semester == "Second":
-            total_sec_semester_credit += int(i.course.credit)
+        if i.course.term == "First":
+            total_first_term_credit += int(i.course.credit)
+        if i.course.term == "Second":
+            total_sec_term_credit += int(i.course.credit)
 
     previousCGPA = 0
     # previousLEVEL = 0
@@ -241,7 +245,7 @@ def grade_result(request):
             a = Result.objects.get(
                 student__student__pk=request.user.id,
                 level=previousLEVEL,
-                semester="Second",
+                term="Second",
             )
             previousCGPA = a.cgpa
             break
@@ -253,10 +257,10 @@ def grade_result(request):
         "results": results,
         "sorted_result": sorted_result,
         "student": student,
-        "total_first_semester_credit": total_first_semester_credit,
-        "total_sec_semester_credit": total_sec_semester_credit,
-        "total_first_and_second_semester_credit": total_first_semester_credit
-        + total_sec_semester_credit,
+        "total_first_term_credit": total_first_term_credit,
+        "total_sec_term_credit": total_sec_term_credit,
+        "total_first_and_second_term_credit": total_first_term_credit
+        + total_sec_term_credit,
         "previousCGPA": previousCGPA,
     }
 
@@ -267,10 +271,8 @@ def grade_result(request):
 @student_required
 def assessment_result(request):
     student = Student.objects.get(student__pk=request.user.id)
-    courses = TakenCourse.objects.filter(
-        student__student__pk=request.user.id, course__level=student.level
-    )
-    result = Result.objects.filter(student__student__pk=request.user.id)
+    courses = TakenCourse.objects.filter(student=student)
+    result = Result.objects.filter(student=student)
 
     context = {
         "courses": courses,
@@ -282,17 +284,17 @@ def assessment_result(request):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def result_sheet_pdf_view(request, id):
-    current_semester = Semester.objects.get(is_current_semester=True)
+    current_term = Term.objects.get(is_current_term=True)
     current_session = Session.objects.get(is_current_session=True)
     result = TakenCourse.objects.filter(course__pk=id)
     course = get_object_or_404(Course, id=id)
     no_of_pass = TakenCourse.objects.filter(course__pk=id, comment="PASS").count()
     no_of_fail = TakenCourse.objects.filter(course__pk=id, comment="FAIL").count()
     fname = (
-        str(current_semester)
-        + "_semester_"
+        str(current_term)
+        + "_term_"
         + str(current_session)
         + "_"
         + str(course)
@@ -343,8 +345,8 @@ def result_sheet_pdf_view(request, id):
     normal.leading = 15
     title = (
         "<b> "
-        + str(current_semester)
-        + " Semester "
+        + str(current_term)
+        + " Term "
         + str(current_session)
         + " Result Sheet</b>"
     )
@@ -358,7 +360,7 @@ def result_sheet_pdf_view(request, id):
     normal.fontName = "Helvetica"
     normal.fontSize = 10
     normal.leading = 15
-    title = "<b>Course lecturer: " + request.user.get_full_name + "</b>"
+    title = "<b>Course teacher: " + request.user.get_full_name + "</b>"
     title = Paragraph(title.upper(), normal)
     Story.append(title)
     Story.append(Spacer(1, 0.1 * inch))
@@ -456,7 +458,7 @@ def result_sheet_pdf_view(request, id):
 @login_required
 @student_required
 def course_registration_form(request):
-    current_semester = Semester.objects.get(is_current_semester=True)
+    current_term = Term.objects.get(is_current_term=True)
     current_session = Session.objects.get(is_current_session=True)
     courses = TakenCourse.objects.filter(student__student__id=request.user.id)
     fname = request.user.username + ".pdf"
@@ -541,18 +543,18 @@ def course_registration_form(request):
     Story.append(Spacer(1, 0.6 * inch))
 
     style = getSampleStyleSheet()
-    semester = style["Normal"]
-    semester.alignment = TA_LEFT
-    semester.fontName = "Helvetica"
-    semester.fontSize = 9
-    semester.leading = 18
-    semester_title = "<b>FIRST SEMESTER</b>"
-    semester_title = Paragraph(semester_title, semester)
-    Story.append(semester_title)
+    term = style["Normal"]
+    term.alignment = TA_LEFT
+    term.fontName = "Helvetica"
+    term.fontSize = 9
+    term.leading = 18
+    term_title = "<b>FIRST TERM</b>"
+    term_title = Paragraph(term_title, term)
+    Story.append(term_title)
 
     elements = []
 
-    # FIRST SEMESTER
+    # FIRST TERM
     count = 0
     header = [
         (
@@ -560,7 +562,7 @@ def course_registration_form(request):
             "Course Code",
             "Course Title",
             "Unit",
-            Paragraph("Name, Siganture of course lecturer & Date", style["Normal"]),
+            Paragraph("Name, Siganture of course teacher & Date", style["Normal"]),
         )
     ]
     table_header = Table(header, 1 * [1.4 * inch], 1 * [0.5 * inch])
@@ -585,10 +587,10 @@ def course_registration_form(request):
     )
     Story.append(table_header)
 
-    first_semester_unit = 0
+    first_term_unit = 0
     for course in courses:
-        if course.course.semester == FIRST:
-            first_semester_unit += int(course.course.credit)
+        if course.course.term == FIRST:
+            first_term_unit += int(course.course.credit)
             data = [
                 (
                     count + 1,
@@ -617,30 +619,30 @@ def course_registration_form(request):
             Story.append(table_body)
 
     style = getSampleStyleSheet()
-    semester = style["Normal"]
-    semester.alignment = TA_LEFT
-    semester.fontName = "Helvetica"
-    semester.fontSize = 8
-    semester.leading = 18
-    semester_title = (
-        "<b>Total Second First Credit : " + str(first_semester_unit) + "</b>"
+    term = style["Normal"]
+    term.alignment = TA_LEFT
+    term.fontName = "Helvetica"
+    term.fontSize = 8
+    term.leading = 18
+    term_title = (
+        "<b>Total Second First Credit : " + str(first_term_unit) + "</b>"
     )
-    semester_title = Paragraph(semester_title, semester)
-    Story.append(semester_title)
+    term_title = Paragraph(term_title, term)
+    Story.append(term_title)
 
-    # FIRST SEMESTER ENDS HERE
+    # FIRST TERM ENDS HERE
     Story.append(Spacer(1, 0.6 * inch))
 
     style = getSampleStyleSheet()
-    semester = style["Normal"]
-    semester.alignment = TA_LEFT
-    semester.fontName = "Helvetica"
-    semester.fontSize = 9
-    semester.leading = 18
-    semester_title = "<b>SECOND SEMESTER</b>"
-    semester_title = Paragraph(semester_title, semester)
-    Story.append(semester_title)
-    # SECOND SEMESTER
+    term = style["Normal"]
+    term.alignment = TA_LEFT
+    term.fontName = "Helvetica"
+    term.fontSize = 9
+    term.leading = 18
+    term_title = "<b>SECOND TERM</b>"
+    term_title = Paragraph(term_title, term)
+    Story.append(term_title)
+    # SECOND TERM
     count = 0
     header = [
         (
@@ -649,7 +651,7 @@ def course_registration_form(request):
             "Course Title",
             "Unit",
             Paragraph(
-                "<b>Name, Signature of course lecturer & Date</b>", style["Normal"]
+                "<b>Name, Signature of course teacher & Date</b>", style["Normal"]
             ),
         )
     ]
@@ -675,10 +677,10 @@ def course_registration_form(request):
     )
     Story.append(table_header)
 
-    second_semester_unit = 0
+    second_term_unit = 0
     for course in courses:
-        if course.course.semester == SECOND:
-            second_semester_unit += int(course.course.credit)
+        if course.course.term == SECOND:
+            second_term_unit += int(course.course.credit)
             data = [
                 (
                     count + 1,
@@ -707,16 +709,16 @@ def course_registration_form(request):
             Story.append(table_body)
 
     style = getSampleStyleSheet()
-    semester = style["Normal"]
-    semester.alignment = TA_LEFT
-    semester.fontName = "Helvetica"
-    semester.fontSize = 8
-    semester.leading = 18
-    semester_title = (
-        "<b>Total Second Semester Credit : " + str(second_semester_unit) + "</b>"
+    term = style["Normal"]
+    term.alignment = TA_LEFT
+    term.fontName = "Helvetica"
+    term.fontSize = 8
+    term.leading = 18
+    term_title = (
+        "<b>Total Second Term Credit : " + str(second_term_unit) + "</b>"
     )
-    semester_title = Paragraph(semester_title, semester)
-    Story.append(semester_title)
+    term_title = Paragraph(term_title, term)
+    Story.append(term_title)
 
     Story.append(Spacer(1, 2))
     style = getSampleStyleSheet()
@@ -739,7 +741,7 @@ def course_registration_form(request):
     certification_text = Paragraph(certification_text, certification)
     Story.append(certification_text)
 
-    # FIRST SEMESTER ENDS HERE
+    # FIRST TERM ENDS HERE
 
     logo = settings.STATICFILES_DIRS[0] + "/img/dj-lms.png"
     im_logo = Image(logo, 1 * inch, 1 * inch)

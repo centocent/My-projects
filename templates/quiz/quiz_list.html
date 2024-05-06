@@ -16,7 +16,7 @@
     </ol>
 </nav>
 
-{% if request.user.is_superuser or request.user.is_lecturer %}
+{% if request.user.is_superuser or request.user.is_teacher %}
 <div class="manage-wrap">
     <a class="btn btn-primary" href="{% url 'quiz_create' course.slug %}"><i class="fas fa-plus"></i> Add Quiz</a>
 </div>
@@ -56,7 +56,7 @@
                 <div class="d-flex align-items-center">
                     <a class="btn btn-block btn-secondary w-100" href="{% url 'quiz_take' pk=course.pk slug=quiz.slug %}">{% trans "Start quiz" %} &raquo;</a>
 
-                    {% if request.user.is_superuser or request.user.is_lecturer %}
+                    {% if request.user.is_superuser or request.user.is_teacher %}
                         <div class="dropup">
                             <button class="btn btn-sm p-0 ms-2" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v m-0"></i></button>
                             <div class="dropdown-menu" aria-labelledby="dropdown01">

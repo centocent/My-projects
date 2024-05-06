@@ -57,7 +57,7 @@
                 </div>
                 {% endif %} -->
     
-                {% if user.is_lecturer %}
+                {% if user.is_teacher %}
                 <p class="fw-bold"><i class="fas fa-book-open"></i> My Subjects</p>
                 {% if courses %}
                 <ul>
@@ -98,8 +98,8 @@
                 <p class="fw-bold"><i class="fa fa-calendar-day"></i> Important Dates</p>
                 <div class="dashboard-description">
                     <p><strong>Last login:</strong> {{ user.last_login }}</p>
-                    {% if current_semester and current_session %}
-                    <p><strong>Academic Year:</strong> {{ current_semester }} Semester {{ current_session }}</p>
+                    {% if current_term and current_session %}
+                    <p><strong>Academic Year:</strong> {{ current_term }} Term {{ current_session }}</p>
                     {% endif %}
                     <p><strong>Registered Date:</strong> {{ user.date_joined|date }}</p>
                 </div>

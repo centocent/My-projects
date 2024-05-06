@@ -29,7 +29,7 @@
 					</div>
 					<hr>
 
-					{% if request.user.is_lecturer or request.user.is_student %}
+					{% if request.user.is_teacher or request.user.is_student %}
 					<a class="dropdown-item" href="{% url 'user_course_list' %}"><i class="fas fa-book me-2"></i>My
 						Courses</a>
 					{% endif %}
@@ -43,13 +43,26 @@
 					<a class="dropdown-item" href="{% url 'edit_profile' %}"><i class="fas fa-cog me-2"></i>Setting</a>
 					<hr>
 					<div style="display: flex; justify-content: center; align-items: center;">
-						<a class="btn btn-secondary" href="{% url 'logout' %}">
+						<a class="btn btn-secondary" href="{% url 'logoutnow' %}" id="logout-button">
 							<i class="fas fa-sign-out-alt"></i> Signout
 						</a>
 					</div>
 				</div>
 			</div>
-
+			<script>
+				$(document).ready(function() {
+					// Attach click event handler to the logout button
+					$("#logout-button").click(function(event) {
+						event.preventDefault(); // Prevent the default behavior of the link
+			
+						// Send a POST request to the logout URL
+						$.post("{% url 'logoutnow' %}", function(data, status) {
+							// Redirect to the login page upon successful logout
+							window.location.href = "{% url 'login' %}";
+						});
+					});
+				});
+			</script>
 		</div>
 	</div>
 </div>

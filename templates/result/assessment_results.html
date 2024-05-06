@@ -28,7 +28,7 @@
 <p>{{ student.level }} Result</p>
 
 <div class="table-responsive p-0 px-2 mt-3">
-  <div class="table-title"><u>First Semester:</u></div>
+  <div class="table-title"><u>First Term:</u></div>
   <table class="table table-light">
     <thead>
       <tr>
@@ -45,7 +45,7 @@
       </tr>
     </thead>
     {% for course in courses %}
-    {% if course.course.semester == "First" %}
+    {% if course.course.term == "First" %}
     <tbody>
       <tr class="{% if forloop.counter|divisibleby:2 %}bg-gray{% endif %}">
         <th scope="row">{{ forloop.counter }}</th>
@@ -70,7 +70,7 @@
   </div>
 
   <div class="table-responsive p-3 mt-3">
-    <div class="table-title"><u>Second Semester:</u></div>
+    <div class="table-title"><u>Second Term:</u></div>
     <table class="table table-light">
     <thead>
       <tr>
@@ -87,7 +87,7 @@
       </tr>
     </thead>
     {% for course in courses %}
-    {% if course.course.semester == "Second" %}
+    {% if course.course.term == "Second" %}
     <tbody>
       <tr>
         <th scope="row">{{ forloop.counter }}</th>

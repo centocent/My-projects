@@ -126,7 +126,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
    "default": {
         "ENGINE": config("DB_ENGINE", default="django.db.backends.postgresql_psycopg2"),
-        "NAME": config("DB_NAME", default="Results"),
+        "NAME": config("DB_NAME", default="School011"),
         "USER": config("DB_USER", default="postgres"),
         "PASSWORD": config("DB_PASSWORD", default="Innocent@2024"),
         "HOST": config("DB_HOST", default="localhost"),
@@ -254,7 +254,7 @@ LOGGING = {
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STUDENT_ID_PREFIX = config("STUDENT_ID_PREFIX", "ugr")
-LECTURER_ID_PREFIX = config("LECTURER_ID_PREFIX", "lec")
+TEACHER_ID_PREFIX = config("TEACHER_ID_PREFIX", "teach")
 
 CHANNEL_LAYERS = {
     "default":{

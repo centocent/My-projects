@@ -3,7 +3,7 @@ from factory.django import DjangoModelFactory
 from factory import SubFactory, LazyAttribute, Iterator
 from faker import Faker
 
-from course.models import Program, Course, CourseAllocation,Upload, UploadVideo,CourseOffer, SEMESTER
+from course.models import Program, Course, CourseAllocation,Upload, UploadVideo,CourseOffer, TERM
 from accounts.models import User, DepartmentHead
 from core.models import Session
 
@@ -48,7 +48,7 @@ class CourseFactory(DjangoModelFactory):
         program (Program): The associated program for the course.
         level (str): The generated level for the course.
         year (int): The generated year for the course.
-        semester (str): The generated semester for the course.
+        term (str): The generated term for the course.
         is_elective (bool): The flag indicating if the course is elective.
     """
 
@@ -63,7 +63,7 @@ class CourseFactory(DjangoModelFactory):
     program: Type[Program] = SubFactory(ProgramFactory)
     level: str = Iterator(["Beginner", "Intermediate", "Advanced"])
     year: int = LazyAttribute(lambda x: fake.random_int(min=1, max=4))
-    semester: str = Iterator([choice[0] for choice in SEMESTER])
+    term: str = Iterator([choice[0] for choice in TERM])
     is_elective: bool = LazyAttribute(lambda x: fake.boolean())
 
 class CourseAllocationFactory(DjangoModelFactory):
@@ -71,14 +71,14 @@ class CourseAllocationFactory(DjangoModelFactory):
     Factory for creating CourseAllocation instances.
 
     Attributes:
-        lecturer (User): The associated lecturer for the course allocation.
+        teacher (User): The associated teacher for the course allocation.
         session (Session): The associated session for the course allocation.
     """
 
     class Meta:
         model = CourseAllocation
 
-    lecturer: Type[User] = SubFactory(UserFactory, is_lecturer=True)
+    teacher: Type[User] = SubFactory(UserFactory, is_teacher=True)
     session: Type[Session] = SubFactory(SessionFactory)
 
 class UploadFactory(DjangoModelFactory):

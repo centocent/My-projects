@@ -2,10 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-from accounts.decorators import admin_required, lecturer_required
+from accounts.decorators import admin_required, teacher_required
 from accounts.models import User, Student
-from .forms import SessionForm, SemesterForm, NewsAndEventsForm
-from .models import NewsAndEvents, ActivityLog, Session, Semester
+from .forms import SessionForm, TermForm, NewsAndEventsForm
+from .models import NewsAndEvents, ActivityLog, Session, Term
 
 
 # ########################################################
@@ -28,7 +28,7 @@ def dashboard_view(request):
     gender_count = Student.get_gender_count()
     context = {
         "student_count": User.objects.get_student_count(),
-        "lecturer_count": User.objects.get_lecturer_count(),
+        "teacher_count": User.objects.get_teacher_count(),
         "superuser_count": User.objects.get_superuser_count(),
         "males_count": gender_count["M"],
         "females_count": gender_count["F"],
@@ -62,7 +62,7 @@ def post_add(request):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def edit_post(request, pk):
     instance = get_object_or_404(NewsAndEvents, pk=pk)
     if request.method == "POST":
@@ -88,7 +88,7 @@ def edit_post(request, pk):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def delete_post(request, pk):
     post = get_object_or_404(NewsAndEvents, pk=pk)
     title = post.title
@@ -101,7 +101,7 @@ def delete_post(request, pk):
 # Session
 # ########################################################
 @login_required
-@lecturer_required
+@teacher_required
 def session_list_view(request):
     """Show list of all sessions"""
     sessions = Session.objects.all().order_by("-is_current_session", "-session")
@@ -109,7 +109,7 @@ def session_list_view(request):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def session_add_view(request):
     """check request method, if POST we add session otherwise show empty form"""
     if request.method == "POST":
@@ -141,7 +141,7 @@ def session_add_view(request):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def session_update_view(request, pk):
     session = Session.objects.get(pk=pk)
     if request.method == "POST":
@@ -173,7 +173,7 @@ def session_update_view(request, pk):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def session_delete_view(request, pk):
     session = get_object_or_404(Session, pk=pk)
 
@@ -190,55 +190,55 @@ def session_delete_view(request, pk):
 
 
 # ########################################################
-# Semester
+# Term
 # ########################################################
 @login_required
-@lecturer_required
-def semester_list_view(request):
-    semesters = Semester.objects.all().order_by("-is_current_semester", "-semester")
+@teacher_required
+def term_list_view(request):
+    terms = Term.objects.all().order_by("-is_current_term", "-term")
     return render(
         request,
-        "core/semester_list.html",
+        "core/term_list.html",
         {
-            "semesters": semesters,
+            "terms": terms,
         },
     )
 
 
 @login_required
-@lecturer_required
-def semester_add_view(request):
+@teacher_required
+def term_add_view(request):
     if request.method == "POST":
-        form = SemesterForm(request.POST)
+        form = TermForm(request.POST)
         if form.is_valid():
             data = form.data.get(
-                "is_current_semester"
+                "is_current_term"
             )  # returns string of 'True' if the user selected Yes
             if data == "True":
-                semester = form.data.get("semester")
+                term = form.data.get("term")
                 ss = form.data.get("session")
                 session = Session.objects.get(pk=ss)
                 try:
-                    if Semester.objects.get(semester=semester, session=ss):
+                    if term.objects.get(term=term, session=ss):
                         messages.error(
                             request,
-                            semester
-                            + " semester in "
+                            term
+                            + " term in "
                             + session.session
                             + " session already exist",
                         )
-                        return redirect("add_semester")
+                        return redirect("add_term")
                 except:
-                    semesters = Semester.objects.all()
+                    terms = Term.objects.all()
                     sessions = Session.objects.all()
-                    if semesters:
-                        for semester in semesters:
-                            if semester.is_current_semester == True:
-                                unset_semester = Semester.objects.get(
-                                    is_current_semester=True
+                    if terms:
+                        for term in terms:
+                            if term.is_current_term == True:
+                                unset_term = Term.objects.get(
+                                    is_current_term=True
                                 )
-                                unset_semester.is_current_semester = False
-                                unset_semester.save()
+                                unset_term.is_current_term = False
+                                unset_term.save()
                         for session in sessions:
                             if session.is_current_session == True:
                                 unset_session = Session.objects.get(
@@ -252,59 +252,59 @@ def semester_add_view(request):
                     set_session.is_current_session = True
                     set_session.save()
                     form.save()
-                    messages.success(request, "Semester added successfully.")
-                    return redirect("semester_list")
+                    messages.success(request, "Term added successfully.")
+                    return redirect("term_list")
 
             form.save()
-            messages.success(request, "Semester added successfully. ")
-            return redirect("semester_list")
+            messages.success(request, "Term added successfully. ")
+            return redirect("term_list")
     else:
-        form = SemesterForm()
+        form = TermForm()
     return render(request, "core/term_update.html", {"form": form})
 
 
 @login_required
-@lecturer_required
-def semester_update_view(request, pk):
-    semester = Semester.objects.get(pk=pk)
+@teacher_required
+def term_update_view(request, pk):
+    term = Term.objects.get(pk=pk)
     if request.method == "POST":
         if (
-            request.POST.get("is_current_semester") == "True"
-        ):  # returns string of 'True' if the user selected yes for 'is current semester'
-            unset_semester = Semester.objects.get(is_current_semester=True)
-            unset_semester.is_current_semester = False
-            unset_semester.save()
+            request.POST.get("is_current_term") == "True"
+        ):  # returns string of 'True' if the user selected yes for 'is current term'
+            unset_term = Term.objects.get(is_current_term=True)
+            unset_term.is_current_term = False
+            unset_term.save()
             unset_session = Session.objects.get(is_current_session=True)
             unset_session.is_current_session = False
             unset_session.save()
             new_session = request.POST.get("session")
-            form = SemesterForm(request.POST, instance=semester)
+            form = TermForm(request.POST, instance=term)
             if form.is_valid():
                 set_session = Session.objects.get(pk=new_session)
                 set_session.is_current_session = True
                 set_session.save()
                 form.save()
-                messages.success(request, "Semester updated successfully !")
-                return redirect("semester_list")
+                messages.success(request, "Term updated successfully !")
+                return redirect("term_list")
         else:
-            form = SemesterForm(request.POST, instance=semester)
+            form = TermForm(request.POST, instance=term)
             if form.is_valid():
                 form.save()
-                return redirect("semester_list")
+                return redirect("term_list")
 
     else:
-        form = SemesterForm(instance=semester)
+        form = TermForm(instance=term)
     return render(request, "core/term_update.html", {"form": form})
 
 
 @login_required
-@lecturer_required
-def semester_delete_view(request, pk):
-    semester = get_object_or_404(Semester, pk=pk)
-    if semester.is_current_semester:
-        messages.error(request, "You cannot delete current semester")
-        return redirect("semester_list")
+@teacher_required
+def term_delete_view(request, pk):
+    term = get_object_or_404(Term, pk=pk)
+    if term.is_current_term:
+        messages.error(request, "You cannot delete current term")
+        return redirect("term_list")
     else:
-        semester.delete()
-        messages.success(request, "Semester successfully deleted")
-    return redirect("semester_list")
+        term.delete()
+        messages.success(request, "term successfully deleted")
+    return redirect("term_list")

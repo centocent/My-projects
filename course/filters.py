@@ -20,7 +20,7 @@ class ProgramFilter(django_filters.FilterSet):
 
 
 class CourseAllocationFilter(django_filters.FilterSet):
-    lecturer = django_filters.CharFilter(method="filter_by_lecturer", label="")
+    teacher = django_filters.CharFilter(method="filter_by_teacher", label="")
     course = django_filters.filters.CharFilter(method="filter_by_course", label="")
 
     class Meta:
@@ -31,17 +31,17 @@ class CourseAllocationFilter(django_filters.FilterSet):
         super().__init__(*args, **kwargs)
 
         # Change html classes and placeholders
-        self.filters["lecturer"].field.widget.attrs.update(
-            {"class": "au-input", "placeholder": "Lecturer"}
+        self.filters["teacher"].field.widget.attrs.update(
+            {"class": "au-input", "placeholder": "Teacher"}
         )
         self.filters["course"].field.widget.attrs.update(
             {"class": "au-input", "placeholder": "Course"}
         )
 
-    def filter_by_lecturer(self, queryset, name, value):
+    def filter_by_teacher(self, queryset, name, value):
         return queryset.filter(
-            Q(lecturer__first_name__icontains=value)
-            | Q(lecturer__last_name__icontains=value)
+            Q(teacher__first_name__icontains=value)
+            | Q(teacher__last_name__icontains=value)
         )
 
     def filter_by_course(self, queryset, name, value):

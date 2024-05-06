@@ -18,7 +18,7 @@
     {% endif %}
 {% endif %}
 
-{% if request.user.is_lecturer %}
+{% if request.user.is_teacher %}
     <div class="title-1">My Courses</div>
 {% endif %}
 
@@ -48,8 +48,8 @@
                     <th> Course Code </th>
                     <th> Cr.Hr </th>
                     <th> Year </th>
-                    <th> Semester </th>
-                    <th> Current Semester </th>
+                    <th> Term </th>
+                    <th> Current Term </th>
                     <th> Taken </th>
                 </tr>
             </thead>
@@ -62,9 +62,9 @@
                     <td>{{ course.course.code }}</td>
                     <td>{{ course.course.credit }}</td>
                     <td>{{ course.course.year }}</td>
-                    <td>{{ course.course.semester }}</td>
+                    <td>{{ course.course.term }}</td>
                     <th>
-                        {% if course.course.is_current_semester == False %}
+                        {% if course.course.is_current_term == False %}
                         <i class="fas fa-times-circle fa-1-5x danger"></i>
                         {% else %}
                         <i class="fas fa-check-circle"></i>
@@ -92,8 +92,8 @@
                     <th> Course Code </th>
                     <th> Cr.Hr </th>
                     <th> Year </th>
-                    <th> Semester </th>
-                    <th> Current Semester </th>
+                    <th> Term </th>
+                    <th> Current Term </th>
                 </tr>
             </thead>
             <tbody>
@@ -105,9 +105,9 @@
                     <td>{{ course.code }}</td>
                     <td>{{ course.credit }}</td>
                     <td>{{ course.year }}</td>
-                    <td>{{ course.semester }}</td>
+                    <td>{{ course.term }}</td>
                     <th>
-                        {% if course.is_current_semester == False %}
+                        {% if course.is_current_term == False %}
                         <i class="fas fa-times-circle fa-1-5x danger"></i>
                         {% else %}
                         <i class="fas fa-check-circle"></i>

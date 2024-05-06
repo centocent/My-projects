@@ -28,7 +28,7 @@ def admin_required(
     return wrapper if function else test_func
 
 
-def lecturer_required(
+def teacher_required(
     function=None,
     redirect_to="/",
 ):
@@ -39,7 +39,7 @@ def lecturer_required(
 
     # Define the test function: checks if the user is active and a superuser
     def test_func(user):
-        return user.is_active and user.is_lecturer or user.is_superuser
+        return user.is_active and user.is_teacher or user.is_superuser
 
     # Define the wrapper function to handle the response
     def wrapper(request, *args, **kwargs):

@@ -12,8 +12,8 @@
 
 {% if request.user.is_superuser %}
 <div class="manage-wrap">
-    <a class="btn btn-primary" href="{% url 'add_lecturer' %}"><i class="fas fa-plus"></i>Add Teacher</a>
-    <a class="btn btn-primary" target="_blank" href="{% url 'lecturer_list_pdf' %}"><i class="fas fa-download"></i> Download pdf</a><!--new-->
+    <a class="btn btn-primary" href="{% url 'add_teacher' %}"><i class="fas fa-plus"></i>Add Teacher</a>
+    <a class="btn btn-primary" target="_blank" href="{% url 'teacher_list_pdf' %}"><i class="fas fa-download"></i> Download pdf</a><!--new-->
 </div>
 {% endif %}
 
@@ -39,15 +39,15 @@
             </tr>
         </thead>
         <tbody>
-            {% for lecturer in filter.qs %}
+            {% for teacher in filter.qs %}
             <tr>
                 <td> {{ forloop.counter }}.</td>
-                <td>{{ lecturer.username }}</td>
-                <td><a href="{% url 'profile_single' lecturer.id %}">{{ lecturer.get_full_name }}</a></td>
-                <td>{{ lecturer.email }}</td>
-                <td>{{ lecturer.phone }}</td>
-                <td>{{ lecturer.address }}</td>
-                <td>{{ lecturer.last_login }}</td>
+                <td>{{ teacher.username }}</td>
+                <td><a href="{% url 'profile_single' teacher.id %}">{{ teacher.get_full_name }}</a></td>
+                <td>{{ teacher.email }}</td>
+                <td>{{ teacher.phone }}</td>
+                <td>{{ teacher.address }}</td>
+                <td>{{ teacher.last_login }}</td>
                 {% if request.user.is_superuser %}
                 <td> 
                     <div class="dropdown">
@@ -55,9 +55,9 @@
                             <i class="fa fa-ellipsis-vertical"></i>
                         </button>
                         <ul class="dropdown-menu position-fixed">
-                          <li><a class="dropdown-item" href="{% url 'staff_edit' pk=lecturer.pk %}"><i class="fas fa-edit"></i> Update</a></li>
-                          <li><a class="dropdown-item"  target="_blank" href="{% url 'profile_single' lecturer.id %}?download_pdf=1"><i class="fas fa-download"></i> Download PDF</a></li>
-                          <li><a class="dropdown-item text-danger" href="{% url 'lecturer_delete' pk=lecturer.pk %}"><i class="fas fa-trash-alt"></i> Delete</a></li>
+                          <li><a class="dropdown-item" href="{% url 'staff_edit' pk=teacher.pk %}"><i class="fas fa-edit"></i> Update</a></li>
+                          <li><a class="dropdown-item"  target="_blank" href="{% url 'profile_single' teacher.id %}?download_pdf=1"><i class="fas fa-download"></i> Download PDF</a></li>
+                          <li><a class="dropdown-item text-danger" href="{% url 'teacher_delete' pk=teacher.pk %}"><i class="fas fa-trash-alt"></i> Delete</a></li>
                         </ul>
                       </div>
                 </td>
@@ -67,11 +67,11 @@
                 <tr>
                   <td colspan="8">
                   <span class="text-danger">
-                    No Lecturer(s).
+                    No Teacher(s).
                     {% if request.user.is_superuser %}
-                    <a href="{% url 'add_lecturer' %}">
+                    <a href="{% url 'add_teacher' %}">
                     <i class="primary" style="font-size: 22px;">
-                       Add Lecturer Now.
+                       Add Teacher Now.
                     </i>
                     {% endif %}
                     </a>

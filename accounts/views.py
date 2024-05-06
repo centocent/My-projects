@@ -2,19 +2,19 @@ from django.http.response import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import update_session_auth_hash, logout
+from django.contrib.auth import update_session_auth_hash, logout as lg
 from django.views.generic import CreateView, ListView
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.contrib.auth.forms import PasswordChangeForm
 from django_filters.views import FilterView
-from core.models import Session, Semester
+from core.models import Session, Term
 from course.models import Course
 from result.models import TakenCourse
 from .decorators import admin_required
 from .forms import StaffAddForm, StudentAddForm, ProfileUpdateForm, ParentAddForm
 from .models import User, Student, Parent
-from .filters import LecturerFilter, StudentFilter
+from .filters import TeacherFilter, StudentFilter
 
 #to generate pdf from template we need the following
 from django.http import HttpResponse
@@ -41,22 +41,26 @@ def register(request):
     else:
         form = StudentAddForm(request.POST)
     return render(request, "registration/register.html", {"form": form})
+
 @login_required
-def Logout(request):
-    logout(request)
-    # return redirect("login")
+def logout_view(request):
+        lg(request)
+        return redirect('login')
+    # else:
+    #     return redirect('home')
+
 @login_required
 def profile(request):
     """Show profile of any user that fire out the request"""
     current_session = Session.objects.filter(is_current_session=True).first()
-    current_semester = Semester.objects.filter(
-        is_current_semester=True, session=current_session
+    current_term = Term.objects.filter(
+        is_current_term=True, session=current_session
     ).first()
 
-    if request.user.is_lecturer:
+    if request.user.is_teacher:
         courses = Course.objects.filter(
-            allocated_course__lecturer__pk=request.user.id
-        ).filter(semester=current_semester)
+            allocated_course__teacher__pk=request.user.id
+        ).filter(term=current_term)
         return render(
             request,
             "accounts/profile.html",
@@ -64,7 +68,7 @@ def profile(request):
                 "title": request.user.get_full_name,
                 "courses": courses,
                 "current_session": current_session,
-                "current_semester": current_semester,
+                "current_term": current_term,
             },
         )
     elif request.user.is_student:
@@ -82,11 +86,11 @@ def profile(request):
             "courses": courses,
             "level": level,
             "current_session": current_session,
-            "current_semester": current_semester,
+            "current_term": current_term,
         }
         return render(request, "accounts/profile.html", context)
     else:
-        staff = User.objects.filter(is_lecturer=True)
+        staff = User.objects.filter(is_teacher=True)
         return render(
             request,
             "accounts/profile.html",
@@ -94,7 +98,7 @@ def profile(request):
                 "title": request.user.get_full_name,
                 "staff": staff,
                 "current_session": current_session,
-                "current_semester": current_semester,
+                "current_term": current_term,
             },
         )
 
@@ -123,28 +127,28 @@ def profile_single(request, id):
         return redirect("/profile/")
 
     current_session = Session.objects.filter(is_current_session=True).first()
-    current_semester = Semester.objects.filter(
-        is_current_semester=True, session=current_session
+    current_term = Term.objects.filter(
+        is_current_term=True, session=current_session
     ).first()
 
     user = User.objects.get(pk=id)
     """
     If download_pdf exists, instead of calling render_to_pdf directly, 
     pass the context dictionary built for the specific user type 
-    (lecturer, student, or superuser) to the render_to_pdf function.
+    (teacher, student, or superuser) to the render_to_pdf function.
     """
     if request.GET.get('download_pdf'):
-        if user.is_lecturer:
-            courses = Course.objects.filter(allocated_course__lecturer__pk=id).filter(
-                semester=current_semester
+        if user.is_teacher:
+            courses = Course.objects.filter(allocated_course__teacher__pk=id).filter(
+                term=current_term
             )
             context = {
                 "title": user.get_full_name,
                 "user": user,
-                "user_type": "Lecturer",
+                "user_type": "Teacher",
                 "courses": courses,
                 "current_session": current_session,
-                "current_semester": current_semester,
+                "current_term": current_term,
             }
         elif user.is_student:
             student = Student.objects.get(student__pk=id)
@@ -158,7 +162,7 @@ def profile_single(request, id):
                 "courses": courses,
                 "student": student,
                 "current_session": current_session,
-                "current_semester": current_semester,
+                "current_term": current_term,
             }
         else:
             context = {
@@ -166,22 +170,22 @@ def profile_single(request, id):
                 "user": user,
                 "user_type": "superuser",
                 "current_session": current_session,
-                "current_semester": current_semester,
+                "current_term": current_term,
             }
         return render_to_pdf("pdf/profile_single.html", context)
 
     else:
-        if user.is_lecturer:
-            courses = Course.objects.filter(allocated_course__lecturer__pk=id).filter(
-                semester=current_semester
+        if user.is_teacher:
+            courses = Course.objects.filter(allocated_course__teacher__pk=id).filter(
+                term=current_term
             )
             context = {
                 "title": user.get_full_name,
                 "user": user,
-                "user_type": "Lecturer",
+                "user_type": "Teacher",
                 "courses": courses,
                 "current_session": current_session,
-                "current_semester": current_semester,
+                "current_term": current_term,
             }
             return render(request, "accounts/profile_single.html", context)
         elif user.is_student:
@@ -196,7 +200,7 @@ def profile_single(request, id):
                 "courses": courses,
                 "student": student,
                 "current_session": current_session,
-                "current_semester": current_semester,
+                "current_term": current_term,
             }
             return render(request, "accounts/profile_single.html", context)
         else:
@@ -205,7 +209,7 @@ def profile_single(request, id):
                 "user": user,
                 "user_type": "superuser",
                 "current_session": current_session,
-                "current_semester": current_semester,
+                "current_term": current_term,
             }
             return render(request, "accounts/profile_single.html", context)
 
@@ -284,18 +288,18 @@ def staff_add_view(request):
             form.save()
             messages.success(
                 request,
-                "Account for lecturer "
+                "Account for teacher "
                 + first_name
                 + " "
                 + last_name
                 + " has been created.",
             )
-            return redirect("lecturer_list")
+            return redirect("teacher_list")
     else:
         form = StaffAddForm()
 
     context = {
-        "title": "Lecturer Add",
+        "title": "Teacher Add",
         "form": form,
     }
 
@@ -305,49 +309,49 @@ def staff_add_view(request):
 @login_required
 @admin_required
 def edit_staff(request, pk):
-    instance = get_object_or_404(User, is_lecturer=True, pk=pk)
+    instance = get_object_or_404(User, is_teacher=True, pk=pk)
     if request.method == "POST":
         form = ProfileUpdateForm(request.POST, request.FILES, instance=instance)
         full_name = instance.get_full_name
         if form.is_valid():
             form.save()
 
-            messages.success(request, "Lecturer " + full_name + " has been updated.")
-            return redirect("lecturer_list")
+            messages.success(request, "Teacher " + full_name + " has been updated.")
+            return redirect("teacher_list")
         else:
             messages.error(request, "Please correct the error below.")
     else:
         form = ProfileUpdateForm(instance=instance)
     return render(
         request,
-        "accounts/edit_lecturer.html",
+        "accounts/edit_teacher.html",
         {
-            "title": "Edit Lecturer",
+            "title": "Edit Teacher",
             "form": form,
         },
     )
 
 
 @method_decorator([login_required, admin_required], name="dispatch")
-class LecturerFilterView(FilterView):
-    filterset_class = LecturerFilter
-    queryset = User.objects.filter(is_lecturer=True)
-    template_name = "accounts/lecturer_list.html"
+class TeacherFilterView(FilterView):
+    filterset_class = TeacherFilter
+    queryset = User.objects.filter(is_teacher=True)
+    template_name = "accounts/teacher_list.html"
     paginate_by = 10  # if pagination is desired
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["title"] = "Lecturers"
+        context["title"] = "Teachers"
         return context
 
 
-#lecturers list pdf
-def render_lecturer_pdf_list(request):
-    lecturers = User.objects.filter(is_lecturer=True)
-    template_path = 'pdf/lecturer_list.html'
-    context = {'lecturers':lecturers}
+#teachers list pdf
+def render_teacher_pdf_list(request):
+    teachers = User.objects.filter(is_teacher=True)
+    template_path = 'pdf/teacher_list.html'
+    context = {'teachers':teachers}
     response = HttpResponse(content_type='application/pdf') # convert the response to pdf
-    response['Content-Disposition'] = 'filename="lecturers_list.pdf"'
+    response['Content-Disposition'] = 'filename="teachers_list.pdf"'
     # find the template and render it.
     template = get_template(template_path)
     html = template.render(context)
@@ -362,21 +366,21 @@ def render_lecturer_pdf_list(request):
 
     
 # @login_required
-# @lecturer_required
+# @teacher_required
 # def delete_staff(request, pk):
 #     staff = get_object_or_404(User, pk=pk)
 #     staff.delete()
-#     return redirect('lecturer_list')
+#     return redirect('teacher_list')
 
 
 @login_required
 @admin_required
 def delete_staff(request, pk):
-    lecturer = get_object_or_404(User, pk=pk)
-    full_name = lecturer.get_full_name
-    lecturer.delete()
-    messages.success(request, "Lecturer " + full_name + " has been deleted.")
-    return redirect("lecturer_list")
+    teacher = get_object_or_404(User, pk=pk)
+    full_name = teacher.get_full_name
+    teacher.delete()
+    messages.success(request, "Teacher " + full_name + " has been deleted.")
+    return redirect("teacher_list")
 
 
 # ########################################################

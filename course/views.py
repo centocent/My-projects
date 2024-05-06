@@ -10,9 +10,9 @@ from django.views.generic import ListView
 from django_filters.views import FilterView
 
 from accounts.models import User, Student
-from core.models import Session, Semester
+from core.models import Session, Term
 from result.models import TakenCourse
-from accounts.decorators import lecturer_required, student_required
+from accounts.decorators import teacher_required, student_required
 from .forms import (
     ProgramForm,
     CourseAddForm,
@@ -37,7 +37,7 @@ class ProgramFilterView(FilterView):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def program_add(request):
     if request.method == "POST":
         form = ProgramForm(request.POST)
@@ -86,7 +86,7 @@ def program_detail(request, pk):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def program_edit(request, pk):
     program = Program.objects.get(pk=pk)
 
@@ -109,7 +109,7 @@ def program_edit(request, pk):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def program_delete(request, pk):
     program = Program.objects.get(pk=pk)
     title = program.title
@@ -131,8 +131,8 @@ def course_single(request, slug):
     files = Upload.objects.filter(course__slug=slug)
     videos = UploadVideo.objects.filter(course__slug=slug)
 
-    # lecturers = User.objects.filter(allocated_lecturer__pk=course.id)
-    lecturers = CourseAllocation.objects.filter(courses__pk=course.id)
+    # teachers = User.objects.filter(allocated_teacher__pk=course.id)
+    teachers = CourseAllocation.objects.filter(courses__pk=course.id)
 
     return render(
         request,
@@ -142,14 +142,14 @@ def course_single(request, slug):
             "course": course,
             "files": files,
             "videos": videos,
-            "lecturers": lecturers,
+            "teachers": teachers,
             "media_url": settings.MEDIA_ROOT,
         },
     )
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def course_add(request, pk):
     users = User.objects.all()
     if request.method == "POST":
@@ -180,7 +180,7 @@ def course_add(request, pk):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def course_edit(request, slug):
     course = get_object_or_404(Course, slug=slug)
     if request.method == "POST":
@@ -210,7 +210,7 @@ def course_edit(request, slug):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def course_delete(request, slug):
     course = Course.objects.get(slug=slug)
     # course_name = course.title
@@ -238,7 +238,7 @@ class CourseAllocationFormView(CreateView):
 
     def form_valid(self, form):
         # if a staff has been allocated a course before update it else create new
-        lecturer = form.cleaned_data["lecturer"]
+        teacher = form.cleaned_data["teacher"]
         selected_courses = form.cleaned_data["courses"]
         courses = ()
         for course in selected_courses:
@@ -246,9 +246,9 @@ class CourseAllocationFormView(CreateView):
         # print(courses)
 
         try:
-            a = CourseAllocation.objects.get(lecturer=lecturer)
+            a = CourseAllocation.objects.get(teacher=teacher)
         except:
-            a = CourseAllocation.objects.create(lecturer=lecturer)
+            a = CourseAllocation.objects.create(teacher=teacher)
         for i in range(0, selected_courses.count()):
             a.courses.add(courses[i])
             a.save()
@@ -272,7 +272,7 @@ class CourseAllocationFilterView(FilterView):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def edit_allocated_course(request, pk):
     allocated = get_object_or_404(CourseAllocation, pk=pk)
     if request.method == "POST":
@@ -292,7 +292,7 @@ def edit_allocated_course(request, pk):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def deallocate_course(request, pk):
     course = CourseAllocation.objects.get(pk=pk)
     course.delete()
@@ -307,7 +307,7 @@ def deallocate_course(request, pk):
 # File Upload views
 # ########################################################
 @login_required
-@lecturer_required
+@teacher_required
 def handle_file_upload(request, slug):
     course = Course.objects.get(slug=slug)
     if request.method == "POST":
@@ -331,7 +331,7 @@ def handle_file_upload(request, slug):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def handle_file_edit(request, slug, file_id):
     course = Course.objects.get(slug=slug)
     instance = Upload.objects.get(pk=file_id)
@@ -367,7 +367,7 @@ def handle_file_delete(request, slug, file_id):
 # Video Upload views
 # ########################################################
 @login_required
-@lecturer_required
+@teacher_required
 def handle_video_upload(request, slug):
     course = Course.objects.get(slug=slug)
     if request.method == "POST":
@@ -391,7 +391,7 @@ def handle_video_upload(request, slug):
 
 
 @login_required
-# @lecturer_required
+# @teacher_required
 def handle_video_single(request, slug, video_slug):
     course = get_object_or_404(Course, slug=slug)
     video = get_object_or_404(UploadVideo, slug=video_slug)
@@ -399,7 +399,7 @@ def handle_video_single(request, slug, video_slug):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def handle_video_edit(request, slug, video_slug):
     course = Course.objects.get(slug=slug)
     instance = UploadVideo.objects.get(slug=video_slug)
@@ -453,9 +453,9 @@ def course_registration(request):
         messages.success(request, "Courses registered successfully!")
         return redirect("course_registration")
     else:
-        current_semester = Semester.objects.filter(is_current_semester=True).first()
-        if not current_semester:
-            messages.error(request, "No active semester found.")
+        current_term = Term.objects.filter(is_current_term=True).first()
+        if not current_term:
+            messages.error(request, "No active term found.")
             return render(request, "course/course_registration.html")
 
         # student = Student.objects.get(student__pk=request.user.id)
@@ -469,7 +469,7 @@ def course_registration(request):
             Course.objects.filter(
                 program__pk=student.program.id,
                 level=student.level,
-                semester=current_semester,
+                term=current_term,
             )
             .exclude(id__in=t)
             .order_by("year")
@@ -490,24 +490,24 @@ def course_registration(request):
         if registered_courses.count() == all_courses.count():
             all_courses_are_registered = True
 
-        total_first_semester_credit = 0
-        total_sec_semester_credit = 0
+        total_first_term_credit = 0
+        total_sec_term_credit = 0
         total_registered_credit = 0
         for i in courses:
-            if i.semester == "First":
-                total_first_semester_credit += int(i.credit)
-            if i.semester == "Second":
-                total_sec_semester_credit += int(i.credit)
+            if i.term == "First":
+                total_first_term_credit += int(i.credit)
+            if i.term == "Second":
+                total_sec_term_credit += int(i.credit)
         for i in registered_courses:
             total_registered_credit += int(i.credit)
         context = {
             "is_calender_on": True,
             "all_courses_are_registered": all_courses_are_registered,
             "no_course_is_registered": no_course_is_registered,
-            "current_semester": current_semester,
+            "current_term": current_term,
             "courses": courses,
-            "total_first_semester_credit": total_first_semester_credit,
-            "total_sec_semester_credit": total_sec_semester_credit,
+            "total_first_term_credit": total_first_term_credit,
+            "total_sec_term_credit": total_sec_term_credit,
             "registered_courses": registered_courses,
             "total_registered_credit": total_registered_credit,
             "student": student,
@@ -538,8 +538,8 @@ def course_drop(request):
 
 @login_required
 def user_course_list(request):
-    if request.user.is_lecturer:
-        courses = Course.objects.filter(allocated_course__lecturer__pk=request.user.id)
+    if request.user.is_teacher:
+        courses = Course.objects.filter(allocated_course__teacher__pk=request.user.id)
 
         return render(request, "course/user_course_list.html", {"courses": courses})
 

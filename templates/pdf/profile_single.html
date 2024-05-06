@@ -47,7 +47,7 @@ table .info{
 
   <div class="card">
     <div class="card-body">
-      {% if user.is_lecturer %}
+      {% if user.is_teacher %}
       <p class="h5">My Courses</p>
       {% if courses %}
       <ul class="list-group">
@@ -89,8 +89,8 @@ table .info{
       <p class="h5">Important Dates</p>
       <div class="dashboard-description">
         <p><strong>Last login:</strong> {{ user.last_login }}</p>
-        {% if current_semester and current_session %}
-        <p><strong>Academic Year:</strong> {{ current_semester }} Semester {{ current_session }}</p>
+        {% if current_term and current_session %}
+        <p><strong>Academic Year:</strong> {{ current_term }} Term {{ current_session }}</p>
         {% endif %}
         <p><strong>Registered Date:</strong> {{ user.date_joined|date }}</p>
       </div>

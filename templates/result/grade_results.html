@@ -28,7 +28,7 @@
 <p>{{ student.level }} Result</p>
 
 <div class="table-responsive">
-  <div class="table-title"><u>First Semester:</u></div>
+  <div class="table-title"><u>First Term:</u></div>
   <table class="table table-light">
     <thead>
       <tr>
@@ -42,7 +42,7 @@
       </tr>
     </thead>
     {% for course in courses %}
-    {% if course.course.semester == "First" %}
+    {% if course.course.term == "First" %}
     <tbody>
       <tr class="{% if forloop.counter|divisibleby:2 %}bg-gray{% endif %}">
         <th>{{ forloop.counter }}</th>
@@ -64,10 +64,11 @@
       </tr>
     </tbody>
     {% endif %}
+    
     {% endfor %}
 
     {% for result in results %}
-    {% if result.semester == "First" %}
+    {% if result.term == "First" %}
     <tr style="background: #f3f2f2;">
       <th></th>
       <th></th>
@@ -75,7 +76,7 @@
       <th></th>
       <th></th>
       <th></th>
-      <th>Total first semester credit: {{ total_first_semester_credit }}</th>
+      <th>Total first term credit: {{ total_first_term_credit }}</th>
     </tr>
     <tr class="bg-orange text-white">
       <th></th>
@@ -84,7 +85,7 @@
       <th></th>
       <th></th>
       <th></th>
-      <th>First Semester GPA: {{ result.gpa }}</th>
+      <th>First Term GPA: {{ result.gpa }}</th>
     </tr>
     {% endif %}
     {% endfor %}
@@ -93,7 +94,7 @@
 </div>
   
 <div class="table-responsive p-0 px-2 mt-3">
-  <div class="table-title"><u>Second Semester:</u></div>
+  <div class="table-title"><u>Second Term:</u></div>
   <table class="table table-light">
     <thead>
       <tr>
@@ -107,7 +108,7 @@
       </tr>
     </thead>
     {% for course in courses %}
-    {% if course.course.semester == "Second" %}
+    {% if course.course.term == "Second" %}
     <tbody>
       <tr>
         <th>{{ forloop.counter }}</th>
@@ -132,15 +133,15 @@
     {% endfor %}
     
     {% for result in results %}
-    {% if result.semester == "Second" %}
+    {% if result.term == "Second" %}
     <tr style="background: #f3f2f2;">
       <th></th>
-      <th>Total second semester credit: {{ total_sec_semester_credit }}</th>
+      <th>Total second term credit: {{ total_sec_term_credit }}</th>
       <th></th>
       <th></th>
       <th></th>
       <th></th>
-      <th>Total Credit: {{ total_first_and_second_semester_credit }}</th>
+      <th>Total Credit: {{ total_first_and_second_term_credit }}</th>
     </tr>
     <tr style="background: #f3f2f2;">
       <th></th>
@@ -149,7 +150,7 @@
       <th></th>
       <th></th>
       <th></th>
-      <th>Second Semester GPA: {{ result.gpa }}</th>
+      <th>Second Term GPA: {{ result.gpa }}</th>
     </tr>
     <tr style="background: #fd7e14; color: #fff;">
       <th></th>
@@ -169,18 +170,18 @@
 <br>
 <tbody>
   {% for result in results %}
-  {% if result.semester == "First" %}
+  {% if result.term == "First" %}
   <tr>
     <th></th>
     <th></th>
-    <th><label>First Semester GPA:</label> {{ result.gpa }}</th>
+    <th><label>First Term GPA:</label> {{ result.gpa }}</th>
   </tr>
   <br>
-  {% elif result.semester == "Second" %}
+  {% elif result.term == "Second" %}
     <tr>
     <th></th>
     <th></th>
-    <th><label>Second Semester GPA:</label> {{ result.gpa }}</th>
+    <th><label>Second Term GPA:</label> {{ result.gpa }}</th>
   </tr>
   <br>
   {% endif %}

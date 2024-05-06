@@ -4,32 +4,33 @@
 {% load static %}
 
 {% block content %}
+
 <style>
     /* Custom CSS for the room list */
-.room-list li {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    transition: background-color 0.3s ease;
-}
+    .room-list li {
+        padding: 10px;
+        border-bottom: 1px solid #0cb7eb;
+        transition: background-color 0.3s ease;
+    }
 
-.room-list li:last-child {
-    border-bottom: none; /* Remove border from last item */
-}
+    .room-list li:last-child {
+        border-bottom: none; /* Remove border from last item */
+    }
 
-.room-list li a {
-    color: #333;
-    text-decoration: none;
-}
+    .room-list li a {
+        color: #8508d8;
+        text-decoration: none;
+    }
 
-.room-list li:hover {
-    background-color: #f0f0f0; /* Change background color on hover */
-}
+    .room-list li:hover {
+        background-color: #f0f0f0; /* Change background color on hover */
+    }
 
-.room-list li.active {
-    background-color: #e9ecef; /* Change background color for active item */
-}
-
+    .room-list li.active {
+        background-color: #e9ecef; /* Change background color for active item */
+    }
 </style>
+
 <div class="container">
     <div class="row">
         <div class="col-md-3">
@@ -61,7 +62,7 @@
                 {% endif %}
                 {% endfor %}
             </ul>
-        </div>        
+        </div>
         <div class="col-md-9">
             {% block room_content %}
             {% endblock %}
@@ -72,11 +73,27 @@
 
 {% block styles %}
 {{ block.super }}
-
 {% endblock %}
 
 {% block scripts %}
 {{ block.super }}
+<!-- Add this script at the end of the body tag -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-<!-- Add additional scripts here if needed -->
+<script>
+   $(document).ready(function() {
+    // Attach click event handler to the "Create Google Meet" button
+    $("#create-meet").click(function(event) {
+        event.preventDefault(); // Prevent the default behavior of the button
+
+        // Generate the Google Meet link (replace this with your actual link generation logic)
+        const googleMeetLink = 'https://meet.google.com/?authuser=0';
+
+        // Redirect to the Google Meet link
+        window.location.href = googleMeetLink;
+    });
+});
+
+</script>
 {% endblock %}
+
+

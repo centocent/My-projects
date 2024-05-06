@@ -14,7 +14,7 @@ from django.views.generic import (
 from django.contrib import messages
 from django.db import transaction
 
-from accounts.decorators import lecturer_required
+from accounts.decorators import teacher_required
 from .models import Course, Progress, Sitting, EssayQuestion, Quiz, MCQuestion, Question
 from .forms import (
     QuizAddForm,
@@ -25,7 +25,7 @@ from .forms import (
 )
 
 
-@method_decorator([login_required, lecturer_required], name="dispatch")
+@method_decorator([login_required, teacher_required], name="dispatch")
 class QuizCreateView(CreateView):
     model = Quiz
     form_class = QuizAddForm
@@ -56,7 +56,7 @@ class QuizCreateView(CreateView):
         return super(QuizCreateView, self).form_invalid(form)
 
 
-@method_decorator([login_required, lecturer_required], name="dispatch")
+@method_decorator([login_required, teacher_required], name="dispatch")
 class QuizUpdateView(UpdateView):
     model = Quiz
     form_class = QuizAddForm
@@ -85,7 +85,7 @@ class QuizUpdateView(UpdateView):
 
 
 @login_required
-@lecturer_required
+@teacher_required
 def quiz_delete(request, slug, pk):
     quiz = Quiz.objects.get(pk=pk)
     course = Course.objects.get(slug=slug)
@@ -94,7 +94,7 @@ def quiz_delete(request, slug, pk):
     return redirect("quiz_index", quiz.course.slug)
 
 
-@method_decorator([login_required, lecturer_required], name="dispatch")
+@method_decorator([login_required, teacher_required], name="dispatch")
 class MCQuestionCreate(CreateView):
     model = MCQuestion
     form_class = MCQuestionForm
@@ -145,7 +145,7 @@ def quiz_list(request, slug):
     # return render(request, 'quiz/quiz_list.html', {'quizzes': quizzes})
 
 
-@method_decorator([login_required, lecturer_required], name="dispatch")
+@method_decorator([login_required, teacher_required], name="dispatch")
 class QuizMarkerMixin(object):
     @method_decorator(login_required)
     # @method_decorator(permission_required('quiz.view_sittings'))
@@ -153,7 +153,7 @@ class QuizMarkerMixin(object):
         return super(QuizMarkerMixin, self).dispatch(*args, **kwargs)
 
 
-# @method_decorator([login_required, lecturer_required], name='get_queryset')
+# @method_decorator([login_required, teacher_required], name='get_queryset')
 class SittingFilterTitleMixin(object):
     def get_queryset(self):
         queryset = super(SittingFilterTitleMixin, self).get_queryset()
@@ -180,14 +180,14 @@ class QuizUserProgressView(TemplateView):
         return context
 
 
-@method_decorator([login_required, lecturer_required], name="dispatch")
+@method_decorator([login_required, teacher_required], name="dispatch")
 class QuizMarkingList(QuizMarkerMixin, SittingFilterTitleMixin, ListView):
     model = Sitting
 
     # def get_context_data(self, **kwargs):
     #     context = super(QuizMarkingList, self).get_context_data(**kwargs)
-    #     context['queryset_counter'] = super(QuizMarkingList, self).get_queryset().filter(complete=True).filter(course__allocated_course__lecturer__pk=self.request.user.id).count()
-    #     context['marking_list'] = super(QuizMarkingList, self).get_queryset().filter(complete=True).filter(course__allocated_course__lecturer__pk=self.request.user.id)
+    #     context['queryset_counter'] = super(QuizMarkingList, self).get_queryset().filter(complete=True).filter(course__allocated_course__teacher__pk=self.request.user.id).count()
+    #     context['marking_list'] = super(QuizMarkingList, self).get_queryset().filter(complete=True).filter(course__allocated_course__teacher__pk=self.request.user.id)
     #     return context
     def get_queryset(self):
         if self.request.user.is_superuser:
@@ -197,7 +197,7 @@ class QuizMarkingList(QuizMarkerMixin, SittingFilterTitleMixin, ListView):
                 super(QuizMarkingList, self)
                 .get_queryset()
                 .filter(
-                    quiz__course__allocated_course__lecturer__pk=self.request.user.id
+                    quiz__course__allocated_course__teacher__pk=self.request.user.id
                 )
                 .filter(complete=True)
             )
@@ -210,7 +210,7 @@ class QuizMarkingList(QuizMarkerMixin, SittingFilterTitleMixin, ListView):
         return queryset
 
 
-@method_decorator([login_required, lecturer_required], name="dispatch")
+@method_decorator([login_required, teacher_required], name="dispatch")
 class QuizMarkingDetail(QuizMarkerMixin, DetailView):
     model = Sitting
 
@@ -351,7 +351,7 @@ class QuizTake(FormView):
         if (
             self.quiz.exam_paper is False
             or self.request.user.is_superuser
-            or self.request.user.is_lecturer
+            or self.request.user.is_teacher
         ):
             self.sitting.delete()
 

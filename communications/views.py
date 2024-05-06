@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Room, Message,ChatRoom
 from accounts.models import User
 from .models import PrivateConversation
+from django.http import JsonResponse
 
 # Create your views here.
 @login_required (login_url= 'accounts:login')
@@ -73,6 +74,13 @@ def users_list(request):
         'users': users,
     }
     return render(request, 'room/users.html', context)
+def create_google_meet(request):
+    # Generate the Google Meet link (replace this with your actual code to generate a link)
+    google_meet_link = 'https://meet.google.com/?authuser=0'
+
+    # Add logic here to add users to the meeting if needed
+
+    return JsonResponse({'google_meet_link': google_meet_link})
 
 @login_required
 def private_conversation(request,otheruser, conversation_id):
